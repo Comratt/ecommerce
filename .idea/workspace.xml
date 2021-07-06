@@ -1,17 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="432c13d1-a4dd-48ae-bd9a-fcde218c8af0" name="Default Changelist" comment="" />
+    <list default="true" id="432c13d1-a4dd-48ae-bd9a-fcde218c8af0" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/laravel-plugin.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/ecommerce.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ecommerce.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Exceptions/Handler.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Exceptions/Handler.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Kernel.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Kernel.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/composer.json" beforeDir="false" afterPath="$PROJECT_DIR$/composer.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/composer.lock" beforeDir="false" afterPath="$PROJECT_DIR$/composer.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/app.php" beforeDir="false" afterPath="$PROJECT_DIR$/config/app.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/filesystems.php" beforeDir="false" afterPath="$PROJECT_DIR$/config/filesystems.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/routes/api.php" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ComposerSettings" synchronizationState="SYNCHRONIZE">
+  <component name="ComposerSettings" doNotAsk="true" synchronizationState="SYNCHRONIZE">
     <pharConfigPath>$PROJECT_DIR$/composer.json</pharConfigPath>
     <execution>
       <executable />
     </execution>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="PhpWorkspaceProjectConfiguration">
     <include_path>
@@ -116,9 +133,11 @@
       <path value="$PROJECT_DIR$/vendor/guzzlehttp/psr7" />
       <path value="$PROJECT_DIR$/vendor/guzzlehttp/promises" />
       <path value="$PROJECT_DIR$/vendor/guzzlehttp/guzzle" />
+      <path value="$PROJECT_DIR$/vendor/intervention/image" />
     </include_path>
   </component>
   <component name="ProjectId" id="1j8LjOt36FxQPfTK8k4nMs4AYLI" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="true" />
@@ -126,6 +145,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_package_manager_path" value="npm" />
@@ -158,11 +178,60 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1603180906420</updated>
-      <workItem from="1603180907803" duration="3844000" />
+      <workItem from="1603180907803" duration="4694000" />
+      <workItem from="1603268313697" duration="6344000" />
+      <workItem from="1603355281665" duration="19583000" />
+      <workItem from="1603442242763" duration="12966000" />
+      <workItem from="1603531718797" duration="3003000" />
+      <workItem from="1603534997179" duration="4164000" />
+      <workItem from="1603704136488" duration="299000" />
+      <workItem from="1603878864040" duration="6826000" />
+      <workItem from="1603963543116" duration="49000" />
+      <workItem from="1604308349765" duration="5053000" />
+      <workItem from="1604409600746" duration="818000" />
+      <workItem from="1604481585771" duration="4912000" />
+      <workItem from="1604525499724" duration="8000" />
+      <workItem from="1604835626877" duration="633000" />
+      <workItem from="1606908031442" duration="4230000" />
+      <workItem from="1606995651675" duration="609000" />
+      <workItem from="1607075032915" duration="80000" />
+      <workItem from="1607075120614" duration="1635000" />
+      <workItem from="1607351281207" duration="4142000" />
+      <workItem from="1607533484267" duration="3269000" />
+      <workItem from="1607594389704" duration="10000" />
+      <workItem from="1608807304750" duration="566000" />
+      <workItem from="1608807966044" duration="835000" />
+      <workItem from="1609324992718" duration="1619000" />
+      <workItem from="1609589805229" duration="1711000" />
+      <workItem from="1609763757974" duration="735000" />
+      <workItem from="1609850739072" duration="632000" />
+      <workItem from="1609933621228" duration="633000" />
+      <workItem from="1610625560519" duration="7000" />
+      <workItem from="1610796394348" duration="856000" />
+      <workItem from="1610799627324" duration="2899000" />
+      <workItem from="1610981251757" duration="596000" />
+      <workItem from="1611651642547" duration="20000" />
+      <workItem from="1615034082578" duration="3488000" />
+      <workItem from="1615215655802" duration="5000" />
+      <workItem from="1617619881999" duration="2396000" />
+      <workItem from="1617880690864" duration="20000" />
+      <workItem from="1624294822377" duration="308000" />
+      <workItem from="1624542003747" duration="15000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="627" y="218" key="#com.jetbrains.php.actions.copyPaste.importReferences.PhpImportReferencesDialog" timestamp="1610799051558">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="627" y="218" key="#com.jetbrains.php.actions.copyPaste.importReferences.PhpImportReferencesDialog/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1610799051558" />
+    <state x="2547" y="218" key="#com.jetbrains.php.actions.copyPaste.importReferences.PhpImportReferencesDialog/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1603541211181" />
+    <state x="2615" y="428" key="NewPhpFileDialog" timestamp="1603369421613">
+      <screen x="1920" y="0" width="1920" height="1040" />
+    </state>
+    <state x="2615" y="428" key="NewPhpFileDialog/0.0.1920.1040/1920.0.1920.1040@1920.0.1920.1040" timestamp="1603369421613" />
   </component>
 </project>
