@@ -32,7 +32,8 @@ class CategoryController extends Controller
     {
         try {
             $categories = DB::table('categories')
-                ->join('category_descriptions', 'category_descriptions.category_id', '=', 'categories.category_id')
+                ->select('*', 'categories.category_id as category_id')
+                ->leftJoin('category_descriptions', 'category_descriptions.category_id', '=', 'categories.category_id')
                 ->get();
 
             return response()->json($categories, 200);
@@ -87,7 +88,7 @@ class CategoryController extends Controller
             $categoryDescription = CategoryDescription::create([
                 'category_id'       => $newCategory->category_id,
                 'description'       => $request->description,
-                'tag'               => $request->tag ? $request->tag : '',
+                'tag'               => $request->tag ?: '',
                 'meta_title'        => $request->meta_title,
                 'meta_description'  => $request->meta_description,
                 'meta_keywords'     => $request->meta_keywords,
@@ -170,7 +171,7 @@ class CategoryController extends Controller
 
                 if ($categoryDescription) {
                     $categoryDescription->description = $request->description;
-                    $categoryDescription->tag = $request->tag ? $request->tag : '';
+                    $categoryDescription->tag = $request->tag ?: '';
                     $categoryDescription->meta_title = $request->meta_title;
                     $categoryDescription->meta_description = $request->meta_description;
                     $categoryDescription->meta_keywords = $request->meta_keywords;

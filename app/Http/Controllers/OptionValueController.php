@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Option;
 use App\OptionValue;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
 
@@ -30,7 +31,9 @@ class OptionValueController extends Controller
     public function index()
     {
         try {
-            $optionValues = OptionValue::all();
+            $optionValues = DB::table('option_values')
+                ->leftJoin('options', 'options.option_id', 'option_values.option_id')
+                ->get();
 
             return response()->json($optionValues, 200);
         } catch (\Exception $exception) {
@@ -63,6 +66,7 @@ class OptionValueController extends Controller
                     $optionValue = new OptionValue;
                     $optionValue->option_id = $option->option_id;
                     $optionValue->name_value = $value->name;
+                    $optionValue->color = $value->color;
 //                    if ($value->description) {
 //                        $optionValue->description = $value->description;
 //                    }
@@ -96,58 +100,60 @@ class OptionValueController extends Controller
     /**
      * Display the specified resource.
      *
+     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
+        $optionValues = OptionValue::where('option_id', $id)->get();
 
+        return response()->json($optionValues, 200);
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $id)
+    public static function update(Request $request, $id)
     {
-        $request->validate([
-            'name_value' => 'required|string',
-            'option_id' => 'number|required',
-            'image' => 'mimes:jpeg,jpg,png,gif',
-            'description' => 'string',
-        ]);
+//        $request->validate([
+//            'name_value' => 'required|string',
+//            'option_id' => 'number|required',
+//            'image' => 'mimes:jpeg,jpg,png,gif',
+//        ]);
         try {
-            $optionValue = OptionValue::find($id);
-            if ($optionValue) {
-                $optionValuePhoto = $optionValue->image;
-                $optionValue->option_id = $request->option_id;
-                $optionValue->name_value = $request->name_value;
-                $optionValue->description = $request->description;
-                if ($request->hasFile('image')) {
-                    $extension = $request->file('image')->getClientOriginalExtension();
-                    $filenameStore = Str::random(8) . time() . '.' . $extension;
-                    $request->file('image')->storeAs('images', $filenameStore);
-                    $img = Image::make(public_path("uploads/images/$filenameStore"));
-                    $img->orientate();
-                    $img->resize(480, null, function($constraint){
-                        $constraint->upsize();
-                        $constraint->aspectRatio();
-                    });
-                    $img->save(public_path("uploads/images/$filenameStore"));
-                    $optionValuePhoto = $filenameStore;
+            foreach (json_decode($request->input('values')) as $option) {
+                $optionValue = OptionValue::find($option->id);
+                if ($optionValue) {
+                    $optionValuePhoto = $option->image ?: 'no-value-photo.jpg';
+                    $optionValue->name_value = $option->name;
+                    $optionValue->color = $option->color;
+                    if ($request->hasFile('image_' . $option->id)) {
+                        $extension = $request->file('image')->getClientOriginalExtension();
+                        $filenameStore = Str::random(8) . time() . '.' . $extension;
+                        $request->file('image_' . $option->id)->storeAs('images', $filenameStore);
+                        $img = Image::make(public_path("uploads/images/$filenameStore"));
+                        $img->orientate();
+                        $img->resize(480, null, function ($constraint) {
+                            $constraint->upsize();
+                            $constraint->aspectRatio();
+                        });
+                        $img->save(public_path("uploads/images/$filenameStore"));
+                        $optionValuePhoto = $filenameStore;
+                    }
+                    $optionValue->image = $optionValuePhoto;
+                    $optionValue->save();
                 }
-                $optionValue->image = $optionValuePhoto;
-                $optionValue->save();
 
-                return response()->json($optionValue, 200);
+                return response()->json('Значение опции не найдено!', 404);
             }
 
-            return $this->showMessage('значение опции не найдено!', 404);
+            return response()->json('OK', 200);
         } catch (\Exception $exception) {
-            return $this->showMessage('Ошибка при редактировании значении опции!', 400);
+            return response()->json('Ошибка при редактировании значении опции!', 400);
         }
     }
 

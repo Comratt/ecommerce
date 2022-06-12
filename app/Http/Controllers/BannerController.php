@@ -51,7 +51,7 @@ class BannerController extends Controller
             'link' => 'required|string',
             'image' => 'mimes:jpeg,jpg,png,gif|required',
         ]);
-//        try {
+        try {
             $bannerPhoto = 'no-photo.jpg';
             $newBanner = new Banner;
             $newBanner->title = $request->title;
@@ -66,7 +66,7 @@ class BannerController extends Controller
                 $request->file('image')->storeAs('images', $filenameStore);
                 $img = Image::make(public_path("uploads/images/$filenameStore"));
                 $img->orientate();
-                $img->resize(480, null, function($constraint){
+                $img->resize(1920, null, function($constraint){
                     $constraint->upsize();
                     $constraint->aspectRatio();
                 });
@@ -77,9 +77,9 @@ class BannerController extends Controller
             $newBanner->save();
 
             return response()->json($newBanner);
-//        } catch (\Exception $exception) {
-//            return $this->showMessage('Ошибка при добавление баннера!', 400);
-//        }
+        } catch (\Exception $exception) {
+            return $this->showMessage('Ошибка при добавление баннера!', 400);
+        }
     }
 
     /**
@@ -129,7 +129,7 @@ class BannerController extends Controller
                     $request->file('image')->storeAs('images', $filenameStore);
                     $img = Image::make(public_path("uploads/images/$filenameStore"));
                     $img->orientate();
-                    $img->resize(480, null, function($constraint){
+                    $img->resize(1920, null, function($constraint){
                         $constraint->upsize();
                         $constraint->aspectRatio();
                     });

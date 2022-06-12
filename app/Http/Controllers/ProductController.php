@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Order;
 use App\Product;
+use App\User;
+use Carbon\Carbon;
+use Faker\Generator as Faker;
 use App\CategoryDescription;
 use App\ProductCategory;
 use App\ProductDescription;
 use App\ProductImage;
 use App\ProductOption;
+use App\OptionValue;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -36,9 +41,140 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         try {
-            $products = Product::getAllProducts();
+            $countPerPage = $request->input('count') ?: 20;
+            $is_available = $request->input('available') == 'true';
+            $search = $request->input('search');
+            $name = $request->input('name');
+            $model = $request->input('model');
+            $category = $request->input('category');
+            $sortBy = $request->input('sortBy');
+            $price = $request->input('price');
+            $color = $request->input('color');
+            $size = $request->input('size');
+            $ids = $request->input('id');
+            $products = Product::getAllProducts(
+                $countPerPage,
+                $is_available,
+                $search,
+                $category,
+                $sortBy,
+                $price,
+                $color,
+                $size,
+                $ids,
+                $name,
+                $model
+            );
 
             return response()->json($products, 200);
+        } catch (\Exception $exception) {
+            return $this->showMessage('Ошибка при загрузки товаров!', 400);
+        }
+    }
+
+    public function minMaxPrice(Request $request) {
+        try {
+            $category = $request->input('category');
+            $color = $request->input('color');
+            $productsQuery = Product::select(DB::raw('*'))
+                ->leftJoin('color_size_product', 'products.product_id', '=', 'color_size_product.product_id')
+                ->leftJoin('product_options', 'product_option_id', '=', 'color_size_product.color_id')
+                ->leftJoin('option_values', 'option_values.option_value_id', '=', 'product_options.option_value_id');
+            if ($color) {
+                $productsQuery->whereIn('option_values.option_value_id', $color);
+            }
+            if ($category) {
+                $productsQuery->leftJoin('product_categories', 'products.product_id', '=', 'product_categories.product_id');
+                $productsQuery->leftJoin('categories', 'categories.category_id', '=', 'product_categories.category_id');
+                $productsQuery->whereIn('product_categories.category_id', $category);
+                $productsQuery->orWhereIn('categories.parent_id', $category);
+                $productsQuery
+                    ->whereNotNull('option_values.option_value_id')
+                    ->where('color_size_product.quantity', '>', 0);
+                if ($color) {
+                    $productsQuery->whereIn('option_values.option_value_id', $color);
+                }
+            }
+            $minPrice = $productsQuery->min('products.price');
+            $maxPrice = $productsQuery->max('products.price');
+
+            return response()->json([$minPrice, $maxPrice]);
+        } catch (\Exception $exception) {
+            return $this->showMessage('Ошибка при загрузки товаров!', 400);
+        }
+    }
+
+    public function colors(Request $request) {
+        try {
+            $category = $request->input('category');
+            $price = $request->input('price');
+            $productsQuery = Product::select(DB::raw('option_values.name_value as name, product_options.option_value_id as id, color'))
+                ->leftJoin('color_size_product', 'products.product_id', '=', 'color_size_product.product_id')
+                ->leftJoin('product_options', 'product_option_id', '=', 'color_size_product.color_id')
+                ->leftJoin('option_values', 'option_values.option_value_id', '=', 'product_options.option_value_id');
+
+            if ($price) {
+                $productsQuery->whereBetween('products.price', [$price]);
+            }
+            if ($category) {
+                $productsQuery->leftJoin('product_categories', 'products.product_id', '=', 'product_categories.product_id');
+                $productsQuery->leftJoin('categories', 'categories.category_id', '=', 'product_categories.category_id');
+                $productsQuery->whereIn('product_categories.category_id', $category);
+                $productsQuery->orWhereIn('categories.parent_id', $category);
+                if ($price) {
+                    $productsQuery->whereBetween('products.price', [$price]);
+                }
+            }
+            $colors = $productsQuery
+                ->whereNotNull('option_values.option_value_id')
+                ->where('color_size_product.quantity', '>', 0)
+                ->groupBy('option_values.option_value_id')
+                ->get();
+
+            return response()->json($colors);
+        } catch (\Exception $exception) {
+            return $this->showMessage('Ошибка при загрузки товаров!', 400);
+        }
+    }
+    public function sizes(Request $request) {
+        try {
+            $category = $request->input('category');
+            $price = $request->input('price');
+            $productsQuery = Product::select(DB::raw('option_values.name_value as name, product_options.option_value_id as id'))
+                ->leftJoin('color_size_product', 'products.product_id', '=', 'color_size_product.product_id')
+                ->leftJoin('product_options', 'product_option_id', '=', 'color_size_product.size_id')
+                ->leftJoin('option_values', 'option_values.option_value_id', '=', 'product_options.option_value_id');
+
+            if ($price) {
+                $productsQuery->whereBetween('products.price', [$price]);
+            }
+            if ($category) {
+                $productsQuery->leftJoin('product_categories', 'products.product_id', '=', 'product_categories.product_id');
+                $productsQuery->leftJoin('categories', 'categories.category_id', '=', 'product_categories.category_id');
+                $productsQuery->whereIn('product_categories.category_id', $category);
+                $productsQuery->orWhereIn('categories.parent_id', $category);
+                if ($price) {
+                    $productsQuery->whereBetween('products.price', [$price]);
+                }
+            }
+            $sizes = $productsQuery
+                ->whereNotNull('option_values.option_value_id')
+                ->where('color_size_product.quantity', '>', 0)
+                ->groupBy('option_values.option_value_id')
+                ->get();
+
+            return response()->json($sizes);
+        } catch (\Exception $exception) {
+            return $this->showMessage('Ошибка при загрузки товаров!', 400);
+        }
+    }
+
+    public function listModels(Request $request)
+    {
+        try {
+            $products = Product::getListModels();
+
+            return response()->json($products);
         } catch (\Exception $exception) {
             return $this->showMessage('Ошибка при загрузки товаров!', 400);
         }
@@ -53,70 +189,149 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         DB::transaction(function () use ($request) {
-            $product = new Product;
-            $product->model = $request->model;
-            $product->price = $request->price;
-            $productPhoto = 'no-photo.jpg';
-            if ($request->hasFile('image')) {
-                $extension = $request->file('image')->getClientOriginalExtension();
-                $filenameStore = Str::random(8) . time() . '.' . $extension;
-                $request->file('image')->storeAs('images', $filenameStore);
-                $img = Image::make(public_path("uploads/images/$filenameStore"));
-                $img->orientate();
-                $img->resize(480, null, function($constraint){
-                    $constraint->upsize();
-                    $constraint->aspectRatio();
-                });
-                $img->save(public_path("uploads/images/$filenameStore"));
-                $productPhoto = $filenameStore;
-            }
-            $product->image = $productPhoto;
-            $product->save();
-            foreach ($request->category_id as $category_id) {
-                ProductCategory::create([
-                    'product_id'  => $product->product_id,
-                    'category_id' => $category_id,
-                ]);
-            }
-            ProductDescription::create([
-                'product_id' => $product->product_id,
-                'description' => $request->description,
-                'tag' => $request->tag,
-                'meta_title' => $request->meta_title,
-                'meta_description' => $request->meta_description,
-                'meta_keyword' => $request->meta_keyword,
-            ]);
-            if ($request->hasFile('photos')) {
-                foreach ($request->file('photos') as $photo) {
-                    $extension = $photo->getClientOriginalExtension();
-                    $filenameStore = Str::random(8) . time() . '.' . $extension;
-                    $photo->storeAs('images', $filenameStore);
-                    $img = Image::make(public_path("uploads/images/$filenameStore"));
-                    $img->orientate();
-                    $img->resize(480, null, function($constraint){
-                        $constraint->upsize();
-                        $constraint->aspectRatio();
-                    });
-                    $img->save(public_path("uploads/images/$filenameStore"));
-                    ProductImage::create([
-                        'product_id' => $product->product_id,
-                        'image' => $filenameStore,
-                    ]);
+            try {
+                $product = new Product;
+                if ($product) {
+                    $reqProduct = json_decode($request->product);
+                    $product->model = $reqProduct->model;
+                    $product->name = $reqProduct->productName;
+                    $product->price = $reqProduct->price;
+                    $product->status = $reqProduct->status ?: 1;
+                    $productPhoto = 'no-photo.jpg';
+                    if ($request->hasFile('mainImage')) {
+                        $extension = $request->file('mainImage')->getClientOriginalExtension();
+                        $filenameStore = Str::random(8) . time() . '.' . $extension;
+                        $request->file('mainImage')->storeAs('images', $filenameStore);
+                        $img = Image::make(public_path("uploads/images/$filenameStore"));
+                        $img->orientate();
+                        $img->resize(1280, null, function($constraint){
+                            $constraint->upsize();
+                            $constraint->aspectRatio();
+                        });
+                        $img->save(public_path("uploads/images/$filenameStore"));
+                        $productPhoto = $filenameStore;
+                    }
+                    $product->image = $productPhoto;
+                    $product->save();
+
+                    $newProductDescription = new ProductDescription;
+                    $newProductDescription->product_id = $product->product_id;
+                    $newProductDescription->description = $reqProduct->description;
+                    $newProductDescription->meta_title = $reqProduct->metaTitle;
+                    $newProductDescription->meta_description = $reqProduct->metaDescription;
+                    $newProductDescription->meta_keyword = $reqProduct->metaKeywords;
+                    $newProductDescription->tag = $reqProduct->metaTags;
+                    $newProductDescription->save();
+                    if ($request->input('imagesIds')) {
+                        foreach (json_decode($request->input('imagesIds')) as $imageId) {
+                            $productImage = ProductImage::find($imageId);
+                            if ($productImage) {
+                                $productImageName = $productImage->image ?: 'no-photo.jpg';
+                                if ($request->hasFile('image_' . $imageId)) {
+                                    $extension = $request->file('image_' . $imageId)->getClientOriginalExtension();
+                                    $filenameStore = Str::random(8) . time() . '.' . $extension;
+                                    $request->file('image_' . $imageId)->storeAs('images', $filenameStore);
+                                    $img = Image::make(public_path("uploads/images/$filenameStore"));
+                                    $img->orientate();
+                                    $img->resize(1280, null, function ($constraint) {
+                                        $constraint->upsize();
+                                        $constraint->aspectRatio();
+                                    });
+                                    $img->save(public_path("uploads/images/$filenameStore"));
+                                    $productImageName = $filenameStore;
+                                }
+                                $productImage->image = $productImageName;
+                                $productImage->save();
+                            } else {
+                                $productImageName = 'no-photo.jpg';
+                                if ($request->hasFile('image_' . $imageId)) {
+                                    $extension = $request->file('image_' . $imageId)->getClientOriginalExtension();
+                                    $filenameStore = Str::random(8) . time() . '.' . $extension;
+                                    $request->file('image_' . $imageId)->storeAs('images', $filenameStore);
+                                    $img = Image::make(public_path("uploads/images/$filenameStore"));
+                                    $img->orientate();
+                                    $img->resize(1280, null, function ($constraint) {
+                                        $constraint->upsize();
+                                        $constraint->aspectRatio();
+                                    });
+                                    $img->save(public_path("uploads/images/$filenameStore"));
+                                    $productImageName = $filenameStore;
+                                }
+                                $productNewImage = new ProductImage;
+                                $productNewImage->product_id = $product->product_id;
+                                $productNewImage->image = $productImageName;
+                                $productNewImage->save();
+                            }
+                        }
+                    }
+                    if ($request->options) {
+                        foreach (json_decode($request->options) as $option) {
+                            $size = OptionValue::where('option_value_id', $option->size)->first();
+                            $color = OptionValue::where('option_value_id', $option->color)->first();
+
+                            $product_option_size = ProductOption::create([
+                                'product_id'      => $product->product_id,
+                                'option_id'       => $size->option_id,
+                                'option_value_id' => $size->option_value_id,
+                                'quantity'        => $option->quantity,
+                            ]);
+                            $product_option_color = ProductOption::create([
+                                'product_id'      => $product->product_id,
+                                'option_id'       => $color->option_id,
+                                'option_value_id' => $color->option_value_id,
+                                'quantity'        => $option->quantity,
+                            ]);
+
+                            DB::table('color_size_product')->insert([
+                                'product_id' => $product->product_id,
+                                'color_id' => $product_option_color->product_option_id,
+                                'size_id' => $product_option_size->product_option_id,
+                                'quantity' => $option->quantity,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now(),
+                            ]);
+                        }
+                    }
+                    if ($request->discounts) {
+                        foreach (json_decode($request->discounts) as $discount) {
+                            DB::table('discounts')->insert([
+                                'product_id' => $product->product_id,
+                                'discount_price' => $discount->price,
+                                'discount_quantity' => $discount->quantity,
+                                'discount_priority' => $discount->priority,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now(),
+                            ]);
+                        }
+                    }
+                    if ($request->category) {
+                        foreach (json_decode($request->category) as $catId) {
+                            $productCategory = new ProductCategory;
+                            $productCategory->product_id = $product->product_id;
+                            $productCategory->category_id = $catId->value;
+                            $productCategory->save();
+                        }
+                    }
+
+                    if ($request->related) {
+                        foreach (json_decode($request->related) as $prodId) {
+                            DB::table('products_related')->insert([
+                                'product_id' => $product->product_id,
+                                'related_product_id' => $prodId->value,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now(),
+                            ]);
+                        }
+                    }
+
+                    return response()->json('OK', 200);
                 }
-            }
-            foreach ($request->product_options as $product_option => $option_values) {
-                foreach ($option_values as $option_value => $quantity) {
-                    ProductOption::create([
-                        'product_id'      => $product->product_id,
-                        'option_id'       => $product_option,
-                        'option_value_id' => $option_value,
-                        'quantity'        => $quantity,
-                    ]);
-                }
+
+                return $this->showMessage('Товар не найден!', 404);
+            } catch (\Exception $exception) {
+                return $this->showMessage('Ошибка при обновлении товара!', 400);
             }
         }, 1);
-
-        return response()->json('OK', 200);
     }
 
     /**
@@ -129,8 +344,9 @@ class ProductController extends Controller
     public function show(Request $request, $id)
     {
         try {
-            $productItem = Product::find($id);
+            $productItem = Product::where(['product_id' => $id]);
             if ($productItem) {
+                $productItem->increment('viewed');
                 $product = Product::showProductById($id);
 
                 return response()->json($product, 200);
@@ -151,73 +367,225 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $product = Product::find($id);
-        if ($product) {
-            $product->model = $request->model;
-            $product->price = $request->price;
-            $productPhoto = 'no-photo.jpg';
-            if ($request->hasFile('image')) {
-                $extension = $request->file('image')->getClientOriginalExtension();
-                $filenameStore = Str::random(8) . time() . '.' . $extension;
-                $request->file('image')->storeAs('images', $filenameStore);
-                $img = Image::make(public_path("uploads/images/$filenameStore"));
-                $img->orientate();
-                $img->resize(480, null, function($constraint){
-                    $constraint->upsize();
-                    $constraint->aspectRatio();
-                });
-                $img->save(public_path("uploads/images/$filenameStore"));
-                $productPhoto = $filenameStore;
-            }
-            $product->image = $productPhoto;
-            $product->save();
-            foreach (json_decode($request->category_id) as $category_id) {
-                ProductCategory::create([
-                    'product_id'  => $product->product_id,
-                    'category_id' => $category_id,
-                ]);
-            }
-            ProductDescription::create([
-                'product_id' => $product->product_id,
-                'description' => $product->description,
-                'tag' => $product->tag,
-                'meta_title' => $product->meta_title,
-                'meta_description' => $product->meta_description,
-                'meta_keyword' => $product->meta_keyword,
-            ]);
-            if ($request->hasFile('photos')) {
-                foreach ($request->file('photos') as $photo) {
-                    $extension = $photo->getClientOriginalExtension();
-                    $filenameStore = Str::random(8) . time() . '.' . $extension;
-                    $photo->storeAs('images', $filenameStore);
-                    $img = Image::make(public_path("uploads/images/$filenameStore"));
-                    $img->orientate();
-                    $img->resize(480, null, function($constraint){
-                        $constraint->upsize();
-                        $constraint->aspectRatio();
-                    });
-                    $img->save(public_path("uploads/images/$filenameStore"));
-                    ProductImage::create([
-                        'product_id' => $product->product_id,
-                        'image' => $filenameStore,
-                    ]);
-                }
-            }
-            foreach (json_decode($request->product_options) as $product_option => $option_values) {
-                foreach ($option_values as $option_value => $quantity) {
-                    ProductOption::create([
-                        'product_id'      => $product->product_id,
-                        'option_id'       => $product_option,
-                        'option_value_id' => $option_value,
-                        'quantity'        => $quantity,
-                    ]);
-                }
-            }
+//        try {
+            DB::transaction(function () use ($request, $id) {
+                $product = Product::find($id);
+                if ($product) {
+                    $reqProduct = json_decode($request->product);
+                    $product->model = $reqProduct->model;
+                    $product->name = $reqProduct->productName;
+                    $product->price = $reqProduct->price;
+                    $product->status = $reqProduct->status ?: 0;
+                    $productPhoto = $product->image ?: 'no-photo.jpg';
+                    if ($request->hasFile('mainImage')) {
+                        $extension = $request->file('mainImage')->getClientOriginalExtension();
+                        $filenameStore = Str::random(8) . time() . '.' . $extension;
+                        $request->file('mainImage')->storeAs('images', $filenameStore);
+                        $img = Image::make(public_path("uploads/images/$filenameStore"));
+                        $img->orientate();
+                        $img->resize(1280, null, function ($constraint) {
+                            $constraint->upsize();
+                            $constraint->aspectRatio();
+                        });
+                        $img->save(public_path("uploads/images/$filenameStore"));
+                        $productPhoto = $filenameStore;
+                    }
+                    $product->image = $productPhoto;
+                    $product->save();
+                    $productDescription = ProductDescription::where(['product_id' => $id])->first();
+                    if ($productDescription) {
+                        $productDescription->description = $reqProduct->description;
+                        $productDescription->meta_title = $reqProduct->metaTitle;
+                        $productDescription->meta_description = $reqProduct->metaDescription;
+                        $productDescription->meta_keyword = $reqProduct->metaKeywords;
+                        $productDescription->tag = $reqProduct->metaTags;
+                        $productDescription->save();
+                    } else {
+                        $newProductDescription = new ProductDescription;
+                        $newProductDescription->product_id = $id;
+                        $newProductDescription->description = $reqProduct->description;
+                        $newProductDescription->meta_title = $reqProduct->metaTitle;
+                        $newProductDescription->meta_description = $reqProduct->metaDescription;
+                        $newProductDescription->meta_keyword = $reqProduct->metaKeywords;
+                        $newProductDescription->tag = $reqProduct->metaTags;
+                        $newProductDescription->save();
+                    }
+                    if ($request->input('imagesIds')) {
+                        $imageIds = [];
+                        foreach (json_decode($request->input('imagesIds')) as $imageId) {
+                            $productImage = ProductImage::find($imageId);
+                            if ($productImage) {
+                                array_push($imageIds, $imageId);
+                                $productImageName = $productImage->image ?: 'no-photo.jpg';
+                                if ($request->hasFile('image_' . $imageId)) {
+                                    $extension = $request->file('image_' . $imageId)->getClientOriginalExtension();
+                                    $filenameStore = Str::random(8) . time() . '.' . $extension;
+                                    $request->file('image_' . $imageId)->storeAs('images', $filenameStore);
+                                    $img = Image::make(public_path("uploads/images/$filenameStore"));
+                                    $img->orientate();
+                                    $img->resize(1280, null, function ($constraint) {
+                                        $constraint->upsize();
+                                        $constraint->aspectRatio();
+                                    });
+                                    $img->save(public_path("uploads/images/$filenameStore"));
+                                    $productImageName = $filenameStore;
+                                }
+                                $productImage->image = $productImageName;
+                                $productImage->save();
+                            } else {
+                                $productImageName = 'no-photo.jpg';
+                                if ($request->hasFile('image_' . $imageId)) {
+                                    $extension = $request->file('image_' . $imageId)->getClientOriginalExtension();
+                                    $filenameStore = Str::random(8) . time() . '.' . $extension;
+                                    $request->file('image_' . $imageId)->storeAs('images', $filenameStore);
+                                    $img = Image::make(public_path("uploads/images/$filenameStore"));
+                                    $img->orientate();
+                                    $img->resize(1280, null, function ($constraint) {
+                                        $constraint->upsize();
+                                        $constraint->aspectRatio();
+                                    });
+                                    $img->save(public_path("uploads/images/$filenameStore"));
+                                    $productImageName = $filenameStore;
+                                }
+                                $productNewImage = new ProductImage;
+                                $productNewImage->product_id = $id;
+                                $productNewImage->image = $productImageName;
+                                $productNewImage->save();
+                                array_push($imageIds, $productNewImage->product_image_id);
+                            }
+                        }
+                        ProductImage::where('product_id', $product->product_id)
+                            ->whereIn('product_image_id', $imageIds, 'and', true)->delete();
+                    }
+                    if ($request->options) {
+                        $optIds = [];
 
-            return response()->json('OK', 200);
-        }
+                        foreach (json_decode($request->options) as $option) {
+                            $size = OptionValue::where('option_value_id', $option->size)->first();
+                            $color = OptionValue::where('option_value_id', $option->color)->first();
 
-        return $this->showMessage('Товар не найден!', 404);
+                            $product_option_size = ProductOption::create([
+                                'product_id' => $product->product_id,
+                                'option_id' => $size->option_id,
+                                'option_value_id' => $size->option_value_id,
+                                'quantity' => $option->quantity,
+                            ]);
+                            $product_option_color = ProductOption::create([
+                                'product_id' => $product->product_id,
+                                'option_id' => $color->option_id,
+                                'option_value_id' => $color->option_value_id,
+                                'quantity' => $option->quantity,
+                            ]);
+                            if (DB::table('color_size_product')->where('color_size_product_id', '=', $option->id)->first() !== null) {
+                                array_push($optIds, $option->id);
+                                DB::table('color_size_product')
+                                    ->where('color_size_product_id', '=', $option->id)
+                                    ->update([
+                                        'product_id' => $product->product_id,
+                                        'color_id' => $product_option_color->product_option_id,
+                                        'size_id' => $product_option_size->product_option_id,
+                                        'quantity' => $option->quantity,
+                                    ]);
+                            } else {
+                                $optId = DB::table('color_size_product')
+                                    ->insertGetId([
+                                        'product_id' => $product->product_id,
+                                        'color_id' => $product_option_color->product_option_id,
+                                        'size_id' => $product_option_size->product_option_id,
+                                        'quantity' => $option->quantity,
+                                    ]);
+                                array_push($optIds, $optId);
+                            }
+                        }
+                        DB::table('color_size_product')
+                            ->where('product_id', $product->product_id)
+                            ->whereIn('color_size_product_id', $optIds, 'and', true)->delete();
+                    }
+                    if ($request->discounts) {
+                        $discountIds = [];
+
+                        foreach (json_decode($request->discounts) as $discount) {
+                            if (DB::table('discounts')->where('discount_id', '=', $discount->id)->first() !== null) {
+                                array_push($discountIds, $discount->id);
+                                DB::table('discounts')
+                                    ->where('discount_id', '=', $discount->id)
+                                    ->update([
+                                        'product_id' => $id,
+                                        'discount_price' => $discount->price,
+                                        'discount_quantity' => $discount->quantity,
+                                        'discount_priority' => $discount->priority,
+                                ]);
+                            } else {
+                                $discountId = DB::table('discounts')->insertGetId([
+                                    'product_id' => $id,
+                                    'discount_price' => $discount->price,
+                                    'discount_quantity' => $discount->quantity,
+                                    'discount_priority' => $discount->priority,
+                                ]);
+                                array_push($discountIds, $discountId);
+                            }
+                        }
+                        DB::table('discounts')
+                            ->where('product_id', $product->product_id)
+                            ->whereIn('discount_id', $discountIds, 'and', true)->delete();
+                    }
+                    if ($request->category) {
+                        $categoryIds = [];
+
+                        foreach (json_decode($request->category) as $catId) {
+                            if (ProductCategory::where('product_category_id', '=', $catId->id)->first() !== null) {
+                                array_push($categoryIds, $catId->id);
+                                ProductCategory::where('product_category_id', '=', $catId->id)
+                                    ->update([
+                                        'product_id' => $id,
+                                        'category_id' => $catId->value
+                                    ]);
+                            } else {
+                                $productCategory = new ProductCategory;
+                                $productCategory->product_id = $id;
+                                $productCategory->category_id = $catId->value;
+                                $productCategory->save();
+                                array_push($categoryIds, $productCategory->product_category_id);
+                            }
+                        }
+                        ProductCategory::where('product_id', $product->product_id)
+                            ->whereIn('product_category_id', $categoryIds, 'and', true)->delete();
+                    }
+
+                    if ($request->related) {
+                        $relatedIds = [];
+
+                        foreach (json_decode($request->related) as $prodId) {
+                            if (DB::table('products_related')->where('products_related_id', '=', $prodId->id)->first() !== null) {
+                                array_push($relatedIds, $prodId->id);
+                                DB::table('products_related')
+                                    ->where('products_related_id', '=', $prodId->id)
+                                    ->update([
+                                    'product_id' => $id,
+                                    'related_product_id' => $prodId->value,
+                                ]);
+                            } else {
+                                $relatedId = DB::table('products_related')
+                                    ->insertGetId([
+                                        'product_id' => $id,
+                                        'related_product_id' => $prodId->value,
+                                ]);
+                                array_push($relatedIds, $relatedId);
+                            }
+                        }
+                        DB::table('products_related')
+                            ->where('product_id', $product->product_id)
+                            ->whereIn('products_related_id', $relatedIds, 'and', true)->delete();
+                    }
+
+                    return response()->json('OK', 200);
+                }
+
+                return $this->showMessage('Товар не найден!', 404);
+            });
+//        } catch (\Exception $exception) {
+//            return $this->showMessage('Ошибка при обновлении товара!', 400);
+//        }
     }
 
     /**
@@ -238,6 +606,69 @@ class ProductController extends Controller
             return $this->showMessage('Товар не найден!', 404);
         } catch (\Exception $exception) {
             return $this->showMessage('Ошибка при удалении товара!', 400);
+        }
+    }
+
+    public function generate() {
+        $photos = ['65EiuuYU1626820364.jpg', 'jeans-2.jpg', 'jeans-4.jpg', 'jeans-1.jpg', 'jeans-3.jpg',];
+        try {
+            $product = new Product();
+            $product->name = Str::words(2);
+            $product->model = 'Flared high rise jeans';
+            $product->price = rand(1000, 5000);
+            $product->image = array_random($photos);
+            $product->save();
+        } catch (\Exception $exception) {
+            return $this->showMessage('Ошибка при генерации товаров!', 400);
+        }
+    }
+
+    public function getAnalytics() {
+        try {
+            $products = Product::select(DB::raw('COUNT(*) as counted'))->first();
+            $productsOld = Product::select(DB::raw('COUNT(*) as counted'))->whereDate('created_at', '=', Carbon::yesterday()->toDateString())->first();
+            $productsNow = Product::select(DB::raw('COUNT(*) as counted'))->whereDate('created_at', '=', Carbon::today()->toDateString())->first();
+
+            $ordersNotCompleted = Order::select(DB::raw('COUNT(*) as counted'))->where('status_id', '!=', '6')->first();
+            $ordersNotCompletedOld = Order::select(DB::raw('COUNT(*) as counted'))->where('status_id', '!=', '6')->whereDate('updated_at', '=', Carbon::yesterday()->toDateString())->first();
+            $ordersNotCompletedNow = Order::select(DB::raw('COUNT(*) as counted'))->where('status_id', '!=', '6')->whereDate('updated_at', '=', Carbon::today()->toDateString())->first();
+
+            $ordersCompleted = Order::select(DB::raw('SUM(products.price) as counted'))
+                ->leftJoin('order_products', 'order_products.order_id', 'orders.order_id')
+                ->leftJoin('products', 'order_products.product_id', 'products.product_id')
+                ->where('status_id', '=', '6')
+                ->first();
+            $ordersCompletedOld = Order::select(DB::raw('COUNT(*) as counted'))->where('status_id', '=', '6')->whereDate('updated_at', '=', Carbon::yesterday()->toDateString())->first();
+            $ordersCompletedNow = Order::select(DB::raw('COUNT(*) as counted'))->where('status_id', '=', '6')->whereDate('updated_at', '=', Carbon::today()->toDateString())->first();
+
+            $users = User::select(DB::raw('COUNT(*) as counted'))->where('role', '!=', 'admin')->first();
+            $usersOld = User::select(DB::raw('COUNT(*) as counted'))->where('role', '!=', 'admin')->whereDate('created_at', '=', Carbon::yesterday()->toDateString())->first();
+            $usersNow = User::select(DB::raw('COUNT(*) as counted'))->where('role', '!=', 'admin')->whereDate('created_at', '=', Carbon::today()->toDateString())->first();
+
+            return response()->json([
+                'products' => [
+                    'total' => $products->counted,
+                    'yesterday' => $productsOld->counted,
+                    'today' => $productsNow->counted,
+                ],
+                'orders' => [
+                    'total' => $ordersNotCompleted->counted,
+                    'yesterday' => $ordersNotCompletedOld->counted,
+                    'today' => $ordersNotCompletedNow->counted,
+                ],
+                'completed' => [
+                    'total' => $ordersCompleted->counted,
+                    'yesterday' => $ordersCompletedOld->counted,
+                    'today' => $ordersCompletedNow->counted,
+                ],
+                'users' => [
+                    'total' => $users->counted,
+                    'yesterday' => $usersOld->counted,
+                    'today' => $usersNow->counted,
+                ],
+            ]);
+        } catch (\Exception $exception) {
+            return $this->showMessage('Ошибка при генерации товаров!', 400);
         }
     }
 }

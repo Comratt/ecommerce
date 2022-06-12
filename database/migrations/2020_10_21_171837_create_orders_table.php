@@ -23,6 +23,7 @@ class CreateOrdersTable extends Migration
             $table->string('shipping_city', 32);
             $table->string('shipping_address', 128);
             $table->text('comment')->default('');
+            $table->boolean('viewed')->default(0);
             $table->timestamps();
 
             $table->foreign('status_id')->references('order_status_id')->on('order_statuses');

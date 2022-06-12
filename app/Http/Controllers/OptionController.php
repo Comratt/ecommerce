@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\OptionValue;
 use Illuminate\Http\Request;
 use App\Option;
+use Illuminate\Support\Str;
+use Intervention\Image\Facades\Image;
 
 class OptionController extends Controller
 {
@@ -66,7 +69,7 @@ class OptionController extends Controller
     public function show($id)
     {
         try {
-            $option = Option::find($id);
+            $option = Option::where('option_id', $id)->with('values')->first();
             if ($option) {
                 return response()->json($option, 200);
             }
@@ -86,19 +89,67 @@ class OptionController extends Controller
      */
     public function update(Request $request, $id)
     {
-        try {
-            $option = Option::find($id);
+//        try {
+            $option = Option::where('option_id', $id)->first();
             if ($option) {
                 $option->name = $request->name;
                 $option->save();
 
-                return response()->json($option, 200);
+                if ($request->values) {
+                    foreach (json_decode($request->input('values')) as $value) {
+                        $optionValue = OptionValue::where('option_value_id', $value->id)->first();
+
+                        if ($optionValue) {
+                            $optionValuePhoto = $value->image ?: 'no-value-photo.jpg';
+                            $optionValue->name_value = $value->name;
+                            $optionValue->color = $value->color;
+                            if ($request->hasFile('image_' . $value->id)) {
+                                $extension = $request->file('image_' . $value->id)->getClientOriginalExtension();
+                                $filenameStore = Str::random(8) . time() . '.' . $extension;
+                                $request->file('image_' . $value->id)->storeAs('images', $filenameStore);
+                                $img = Image::make(public_path("uploads/images/$filenameStore"));
+                                $img->orientate();
+                                $img->resize(480, null, function ($constraint) {
+                                    $constraint->upsize();
+                                    $constraint->aspectRatio();
+                                });
+                                $img->save(public_path("uploads/images/$filenameStore"));
+                                $optionValuePhoto = $filenameStore;
+                            }
+                            $optionValue->image = $optionValuePhoto;
+                            $optionValue->save();
+                        } else {
+                            $newOptionValue = new OptionValue;
+                            $optionValuePhoto = $value->image ?: 'no-value-photo.jpg';
+                            $newOptionValue->name_value = $value->name;
+                            $newOptionValue->option_id = $id;
+                            $newOptionValue->color = $value->color;
+                            if ($request->hasFile('image_' . $value->id)) {
+                                $extension = $request->file('image_' . $value->id)->getClientOriginalExtension();
+                                $filenameStore = Str::random(8) . time() . '.' . $extension;
+                                $request->file('image_' . $value->id)->storeAs('images', $filenameStore);
+                                $img = Image::make(public_path("uploads/images/$filenameStore"));
+                                $img->orientate();
+                                $img->resize(480, null, function ($constraint) {
+                                    $constraint->upsize();
+                                    $constraint->aspectRatio();
+                                });
+                                $img->save(public_path("uploads/images/$filenameStore"));
+                                $optionValuePhoto = $filenameStore;
+                            }
+                            $newOptionValue->image = $optionValuePhoto;
+                            $newOptionValue->save();
+                        }
+                    }
+                }
+
+                return response()->json(['option' => $option], 200);
             }
 
             return $this->showMessage('Опция не найдена!', 404);
-        } catch (\Exception $exception) {
-            return $this->showMessage('Ошибка при обновлении опции!', 400);
-        }
+//        } catch (\Exception $exception) {
+//            return $this->showMessage('Ошибка при обновлении опции!', 400);
+//        }
     }
 
     /**
@@ -110,8 +161,11 @@ class OptionController extends Controller
     public function destroy($id)
     {
         try {
-            $option = Option::find($id);
+            $option = Option::where('option_id', $id)->with('values')->first();
             if ($option) {
+                if (count($option->values) > 0) {
+                    return response()->json('У вас есть значения прив\'язаные к опции!', 400);
+                }
                 $deletedOption = $option->delete();
 
                 return response()->json($deletedOption);

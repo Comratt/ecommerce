@@ -6,21 +6,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\User;
-use App\Place;
 
 class AuthController extends Controller
 {
     public function signup(Request $request)
     {
+        $request->validate([
+            'firstName' => 'required|string',
+            'lastName' => 'required|string',
+            'email' => 'required|string|unique:users',
+            'password' => 'required|string',
+        ]);
         try {
-            $request->validate([
-                'name' => 'required|string',
-                'email' => 'required|string|unique:users',
-                'password' => 'required|string',
-            ]);
 
             $user = new User([
-                'name' => $request->name,
+                'first_name' => $request->firstName,
+                'last_name' => $request->lastName,
                 'email' => $request->email,
                 'password' => bcrypt($request->password),
                 'real_password' => $request->password,
@@ -47,6 +48,7 @@ class AuthController extends Controller
             'email' => 'required|string',
             'password' => 'required|string',
             'remember_me' => 'boolean',
+            'from_admin' => 'boolean',
         ]);
 
         $credentails = [
@@ -61,11 +63,23 @@ class AuthController extends Controller
 
         $user = $request->user();
 
+        if ($request->from_admin && $user->role != 'admin') {
+            return response()->json([
+                'message' => 'Такого админа нет'
+            ], 404);
+        }
+        if (!$request->from_admin && $user->role == 'admin') {
+            return response()->json([
+                'message' => 'Логин для админа запрещен!'
+            ], 404);
+        }
+
         $tokenResult = $user->createToken('Personal Access Token');
         $token = $tokenResult->token;
 
-        if ($request->remember_me)
-            $token->expires_at = Carbon::now()->addWeeks(1);
+        if ($request->from_admin) {
+            $token->expires_at = Carbon::now()->addHours(5);
+        }
 
         $token->save();
 
@@ -95,18 +109,20 @@ class AuthController extends Controller
     {
         try {
             $request->validate([
-                'email' => 'required|string',
+                'firstName' => 'required|string',
+                'lastName' => 'required|string',
                 'password' => 'required|string',
-                'name' => 'required|string',
+                'phone' => 'required|string',
             ]);
 
             $user = User::find($id);
 
             if ($user) {
-                $user->name = $request->name;
-                $user->email = $request->email;
+                $user->first_name = $request->firstName;
+                $user->last_name = $request->lastName;
                 $user->password = bcrypt($request->password);
                 $user->real_password = $request->password;
+                $user->phone = $request->phone;
                 $user->save();
 
                 return response()->json($user);
