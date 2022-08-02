@@ -40,7 +40,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        try {
+//        try {
             $countPerPage = $request->input('count') ?: 20;
             $is_available = $request->input('available') == 'true';
             $search = $request->input('search');
@@ -67,9 +67,9 @@ class ProductController extends Controller
             );
 
             return response()->json($products, 200);
-        } catch (\Exception $exception) {
-            return $this->showMessage('Ошибка при загрузки товаров!', 400);
-        }
+//        } catch (\Exception $exception) {
+//            return $this->showMessage('Ошибка при загрузки товаров!', 400);
+//        }
     }
 
     public function minMaxPrice(Request $request) {
@@ -198,11 +198,12 @@ class ProductController extends Controller
                     $product->price = $reqProduct->price;
                     $product->status = $reqProduct->status ?: 1;
                     $productPhoto = 'no-photo.jpg';
+                    $productSizePhoto = null;
                     if ($request->hasFile('mainImage')) {
                         $extension = $request->file('mainImage')->getClientOriginalExtension();
                         $filenameStore = Str::random(8) . time() . '.' . $extension;
                         $request->file('mainImage')->storeAs('images', $filenameStore);
-                        $img = Image::make(public_path("uploads/images/$filenameStore"));
+                        $img = Image::make(public_path("uploads/images/$filenameStore"))->encode('webp', 80);
                         $img->orientate();
                         $img->resize(1280, null, function($constraint){
                             $constraint->upsize();
@@ -211,7 +212,21 @@ class ProductController extends Controller
                         $img->save(public_path("uploads/images/$filenameStore"));
                         $productPhoto = $filenameStore;
                     }
+                    if ($request->hasFile('tableSize')) {
+                        $extensionSize = $request->file('tableSize')->getClientOriginalExtension();
+                        $filenameStoreSize = Str::random(8) . time() . '.' . $extensionSize;
+                        $request->file('tableSize')->storeAs('images', $filenameStoreSize);
+                        $imgSize = Image::make(public_path("uploads/images/$filenameStoreSize"));
+                        $imgSize->orientate();
+                        $imgSize->resize(1280, null, function($constraint){
+                            $constraint->upsize();
+                            $constraint->aspectRatio();
+                        });
+                        $imgSize->save(public_path("uploads/images/$filenameStoreSize"));
+                        $productSizePhoto = $filenameStoreSize;
+                    }
                     $product->image = $productPhoto;
+                    $product->table_size = $productSizePhoto;
                     $product->save();
 
                     $newProductDescription = new ProductDescription;
@@ -367,7 +382,7 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id)
     {
-//        try {
+        try {
             DB::transaction(function () use ($request, $id) {
                 $product = Product::find($id);
                 if ($product) {
@@ -377,11 +392,12 @@ class ProductController extends Controller
                     $product->price = $reqProduct->price;
                     $product->status = $reqProduct->status ?: 0;
                     $productPhoto = $product->image ?: 'no-photo.jpg';
+                    $productSizePhoto = null;
                     if ($request->hasFile('mainImage')) {
                         $extension = $request->file('mainImage')->getClientOriginalExtension();
                         $filenameStore = Str::random(8) . time() . '.' . $extension;
                         $request->file('mainImage')->storeAs('images', $filenameStore);
-                        $img = Image::make(public_path("uploads/images/$filenameStore"));
+                        $img = Image::make(public_path("uploads/images/$filenameStore"))->encode('webp', 80);
                         $img->orientate();
                         $img->resize(1280, null, function ($constraint) {
                             $constraint->upsize();
@@ -390,7 +406,23 @@ class ProductController extends Controller
                         $img->save(public_path("uploads/images/$filenameStore"));
                         $productPhoto = $filenameStore;
                     }
+                    if ($request->hasFile('tableSize')) {
+                        $extensionSize = $request->file('tableSize')->getClientOriginalExtension();
+                        $filenameStoreSize = Str::random(8) . time() . '.' . $extensionSize;
+                        $request->file('tableSize')->storeAs('images', $filenameStoreSize);
+                        $imgSize = Image::make(public_path("uploads/images/$filenameStoreSize"));
+                        $imgSize->orientate();
+                        $imgSize->resize(1280, null, function($constraint){
+                            $constraint->upsize();
+                            $constraint->aspectRatio();
+                        });
+                        $imgSize->save(public_path("uploads/images/$filenameStoreSize"));
+                        $productSizePhoto = $filenameStoreSize;
+                    } else {
+                        $productSizePhoto = $request->tableSize;
+                    }
                     $product->image = $productPhoto;
+                    $product->table_size = $productSizePhoto;
                     $product->save();
                     $productDescription = ProductDescription::where(['product_id' => $id])->first();
                     if ($productDescription) {
@@ -583,9 +615,9 @@ class ProductController extends Controller
 
                 return $this->showMessage('Товар не найден!', 404);
             });
-//        } catch (\Exception $exception) {
-//            return $this->showMessage('Ошибка при обновлении товара!', 400);
-//        }
+        } catch (\Exception $exception) {
+            return $this->showMessage('Ошибка при обновлении товара!', 400);
+        }
     }
 
     /**
@@ -625,27 +657,38 @@ class ProductController extends Controller
 
     public function getAnalytics() {
         try {
+            $mapOrders = Order::select(DB::raw('orders.shipping_area, COUNT(orders.shipping_area) as counted, SUM(order_products.total) as total'))
+                ->leftJoin('order_products', 'order_products.order_id', '=', 'orders.order_id')
+                ->groupBy('orders.shipping_area')
+                ->get();
             $products = Product::select(DB::raw('COUNT(*) as counted'))->first();
             $productsOld = Product::select(DB::raw('COUNT(*) as counted'))->whereDate('created_at', '=', Carbon::yesterday()->toDateString())->first();
             $productsNow = Product::select(DB::raw('COUNT(*) as counted'))->whereDate('created_at', '=', Carbon::today()->toDateString())->first();
 
-            $ordersNotCompleted = Order::select(DB::raw('COUNT(*) as counted'))->where('status_id', '!=', '6')->first();
-            $ordersNotCompletedOld = Order::select(DB::raw('COUNT(*) as counted'))->where('status_id', '!=', '6')->whereDate('updated_at', '=', Carbon::yesterday()->toDateString())->first();
-            $ordersNotCompletedNow = Order::select(DB::raw('COUNT(*) as counted'))->where('status_id', '!=', '6')->whereDate('updated_at', '=', Carbon::today()->toDateString())->first();
+            $ordersNotCompleted = Order::select(DB::raw('COUNT(*) as counted'))->first();
+            $ordersNotCompletedOld = Order::select(DB::raw('COUNT(*) as counted'))->whereDate('updated_at', '=', Carbon::yesterday()->toDateString())->first();
+            $ordersNotCompletedNow = Order::select(DB::raw('COUNT(*) as counted'))->whereDate('updated_at', '=', Carbon::today()->toDateString())->first();
 
-            $ordersCompleted = Order::select(DB::raw('SUM(products.price) as counted'))
+            $ordersCompleted = Order::select(DB::raw('SUM(order_products.total) as counted'))
                 ->leftJoin('order_products', 'order_products.order_id', 'orders.order_id')
                 ->leftJoin('products', 'order_products.product_id', 'products.product_id')
                 ->where('status_id', '=', '6')
                 ->first();
-            $ordersCompletedOld = Order::select(DB::raw('COUNT(*) as counted'))->where('status_id', '=', '6')->whereDate('updated_at', '=', Carbon::yesterday()->toDateString())->first();
-            $ordersCompletedNow = Order::select(DB::raw('COUNT(*) as counted'))->where('status_id', '=', '6')->whereDate('updated_at', '=', Carbon::today()->toDateString())->first();
+            $ordersCompletedOld = Order::select(DB::raw('SUM(order_products.total) as counted'))
+                ->leftJoin('order_products', 'order_products.order_id', 'orders.order_id')
+                ->where('status_id', '=', '6')
+                ->whereDate('orders.updated_at', '=', Carbon::yesterday()->toDateString())->first();
+            $ordersCompletedNow = Order::select(DB::raw('SUM(order_products.total) as counted'))
+                ->leftJoin('order_products', 'order_products.order_id', 'orders.order_id')
+                ->where('status_id', '=', '6')
+                ->whereDate('orders.updated_at', '=', Carbon::today()->toDateString())->first();
 
             $users = User::select(DB::raw('COUNT(*) as counted'))->where('role', '!=', 'admin')->first();
             $usersOld = User::select(DB::raw('COUNT(*) as counted'))->where('role', '!=', 'admin')->whereDate('created_at', '=', Carbon::yesterday()->toDateString())->first();
             $usersNow = User::select(DB::raw('COUNT(*) as counted'))->where('role', '!=', 'admin')->whereDate('created_at', '=', Carbon::today()->toDateString())->first();
 
             return response()->json([
+                'ordersMap' => $mapOrders,
                 'products' => [
                     'total' => $products->counted,
                     'yesterday' => $productsOld->counted,
@@ -670,5 +713,158 @@ class ProductController extends Controller
         } catch (\Exception $exception) {
             return $this->showMessage('Ошибка при генерации товаров!', 400);
         }
+    }
+
+    public function getAnalyticsOrders(Request $request)
+    {
+        try {
+            $filterBy = $request->filterBy;
+            switch ($filterBy) {
+                case 'day': {
+                    $orders = Order::select(DB::raw('HOUR(`orders`.`updated_at`) as `value`, SUM(order_products.total) as total'))
+                        ->leftJoin('order_products', 'order_products.order_id', '=', 'orders.order_id')
+                        ->whereMonth('orders.created_at', '=', date('m'))
+                        ->whereYear('orders.created_at', '=', date('Y'))
+                        ->whereDay('orders.created_at', '=', date('d'))
+                        ->groupBy('value')
+                        ->get();
+                    break;
+                }
+                case 'year': {
+                    $orders = Order::select(DB::raw('MONTH(`orders`.`updated_at`) as `value`, SUM(order_products.total) as total'))
+                        ->leftJoin('order_products', 'order_products.order_id', '=', 'orders.order_id')
+                        ->whereYear('orders.created_at', '=', date('Y'))
+                        ->groupBy('value')
+                        ->get();
+                    break;
+                }
+                case 'month': {
+                    $orders = Order::select(DB::raw('DAY(`orders`.`updated_at`) as `value`, SUM(order_products.total) as total'))
+                        ->leftJoin('order_products', 'order_products.order_id', '=', 'orders.order_id')
+                        ->whereMonth('orders.created_at', '=', date('m'))
+                        ->whereYear('orders.created_at', '=', date('Y'))
+                        ->groupBy('value')
+                        ->get();
+                    break;
+                }
+                default: {
+                    $orders = [];
+                }
+            }
+
+            return response()->json($orders);
+        } catch (\Exception $exception) {
+            return $this->showMessage('Ошибка при генерации товаров!', 400);
+        }
+    }
+
+    public function getAnalyticsCategories(Request $request)
+    {
+        try {
+            $filterBy = $request->filterBy;
+            switch ($filterBy) {
+                case 'day': {
+                    $orders = Order::select(DB::raw('categories.category_name as name, SUM(order_products.total) as value'))
+                        ->leftJoin('order_products', 'order_products.order_id', '=', 'orders.order_id')
+                        ->leftJoin('products', 'products.product_id', 'order_products.product_id')
+                        ->leftJoin('product_categories', 'product_categories.product_id', 'products.product_id')
+                        ->leftJoin('categories', 'product_categories.category_id', 'categories.category_id')
+                        ->whereMonth('orders.updated_at', '=', date('m'))
+                        ->whereYear('orders.updated_at', '=', date('Y'))
+                        ->whereDay('orders.updated_at', '=', date('d'))
+                        ->where('orders.status_id', '=', '6')
+                        ->groupBy('categories.category_id')
+                        ->get();
+                    break;
+                }
+                case 'year': {
+                    $orders = Order::select(DB::raw('categories.category_name as name, SUM(order_products.total) as value'))
+                        ->leftJoin('order_products', 'order_products.order_id', '=', 'orders.order_id')
+                        ->leftJoin('products', 'products.product_id', 'order_products.product_id')
+                        ->leftJoin('product_categories', 'product_categories.product_id', 'products.product_id')
+                        ->leftJoin('categories', 'product_categories.category_id', 'categories.category_id')
+                        ->whereYear('orders.updated_at', '=', date('Y'))
+                        ->where('orders.status_id', '=', '6')
+                        ->groupBy('categories.category_id')
+                        ->get();
+                    break;
+                }
+                case 'month': {
+                    $orders = Order::select(DB::raw('categories.category_name as name, SUM(order_products.total) as value'))
+                        ->leftJoin('order_products', 'order_products.order_id', '=', 'orders.order_id')
+                        ->leftJoin('products', 'products.product_id', 'order_products.product_id')
+                        ->leftJoin('product_categories', 'product_categories.product_id', 'products.product_id')
+                        ->leftJoin('categories', 'product_categories.category_id', 'categories.category_id')
+                        ->whereMonth('orders.updated_at', '=', date('m'))
+                        ->whereYear('orders.updated_at', '=', date('Y'))
+                        ->where('orders.status_id', '=', '6')
+                        ->groupBy('categories.category_id')
+                        ->get();
+                    break;
+                }
+                default: {
+                    $orders = [];
+                }
+            }
+
+            return response()->json($orders);
+        } catch (\Exception $exception) {
+            return $this->showMessage('Ошибка при генерации товаров!', 400);
+        }
+    }
+
+    public function getAnalyticsProducts(Request $request)
+    {
+//        try {
+            $filterBy = $request->filterBy;
+            switch ($filterBy) {
+                case 'day': {
+                    $orders = Order::select(DB::raw('products.name as name, products.model as model, SUM(order_products.quantity) as value'))
+                        ->leftJoin('order_products', 'order_products.order_id', '=', 'orders.order_id')
+                        ->leftJoin('products', 'products.product_id', 'order_products.product_id')
+                        ->whereMonth('orders.updated_at', '=', date('m'))
+                        ->whereYear('orders.updated_at', '=', date('Y'))
+                        ->whereDay('orders.updated_at', '=', date('d'))
+                        ->where('orders.status_id', '=', '6')
+                        ->groupBy('products.product_id')
+                        ->orderBy('value')
+                        ->limit(10)
+                        ->get();
+                    break;
+                }
+                case 'year': {
+                    $orders = Order::select(DB::raw('products.name as name, products.model as model, SUM(order_products.quantity) as value'))
+                        ->leftJoin('order_products', 'order_products.order_id', '=', 'orders.order_id')
+                        ->leftJoin('products', 'products.product_id', 'order_products.product_id')
+                        ->whereYear('orders.updated_at', '=', date('Y'))
+                        ->where('orders.status_id', '=', '6')
+                        ->groupBy('products.product_id')
+                        ->orderBy('value')
+                        ->limit(10)
+                        ->get();
+                    break;
+                }
+                case 'month': {
+                    $orders = Order::select(DB::raw('products.name as name, products.model as model, SUM(order_products.quantity) as value'))
+                        ->leftJoin('order_products', 'order_products.order_id', '=', 'orders.order_id')
+                        ->leftJoin('products', 'products.product_id', 'order_products.product_id')
+                        ->whereMonth('orders.updated_at', '=', date('m'))
+                        ->whereYear('orders.updated_at', '=', date('Y'))
+                        ->where('orders.status_id', '=', '6')
+                        ->groupBy('products.product_id')
+                        ->orderBy('value')
+                        ->limit(10)
+                        ->get();
+                    break;
+                }
+                default: {
+                    $orders = [];
+                }
+            }
+
+            return response()->json($orders);
+//        } catch (\Exception $exception) {
+//            return $this->showMessage('Ошибка при генерации товаров!', 400);
+//        }
     }
 }

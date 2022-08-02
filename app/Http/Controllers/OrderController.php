@@ -38,7 +38,8 @@ class OrderController extends Controller
             $createdAt = $request->input('createdAt');
             $updatedAt = $request->input('updatedAt');
 
-            $ordersQuery = Order::select(DB::raw('*, SUM(`order_products`.`total`) as order_total_sum, orders.created_at as created_at, orders.updated_at as updated_at'))
+            $ordersQuery = Order::select(DB::raw('*, SUM(`order_products`.`total`) as order_total_sum, orders.order_id as order_id, orders.created_at as created_at, orders.updated_at as updated_at'))
+                ->leftJoin('promocodes', 'orders.promocode_id', '=', 'promocodes.promocodes_id')
                 ->leftJoin('order_products', 'order_products.order_id', '=', 'orders.order_id');
 
             if ($orderId) {
@@ -91,6 +92,7 @@ class OrderController extends Controller
     {
         try {
             $order = Order::select(DB::raw('*, SUM(`order_products`.`total`) as order_total_sum'))
+                ->leftJoin('promocodes', 'orders.promocode_id', '=', 'promocodes.promocodes_id')
                 ->leftJoin('order_products', 'order_products.order_id', '=', 'orders.order_id')
                 ->where(['orders.order_id' => $id])
                 ->groupBy('orders.order_id')
@@ -137,75 +139,97 @@ class OrderController extends Controller
             'phone' => 'required',
             'shippingCity' => 'required|string',
             'shippingAddress' => 'required|string',
+            'areaName' => 'required|string',
         ]);
 
-        try {
-            foreach ($request->products as $product) {
-                $findRelated = DB::table('color_size_product')
-                    ->where([
-                        'product_id' => $product['id'],
-                        'color_id' => $product['colorId'],
-                        'size_id' => $product['sizeId'],
-                    ])->first();
+//        try {
+                if ($request->products) {
+                    foreach ($request->products as $product) {
+                        $findRelated = DB::table('color_size_product')
+                            ->where([
+                                'product_id' => $product['id'],
+                                'color_id' => $product['colorId'],
+                                'size_id' => $product['sizeId'],
+                            ])->first();
 
-                if ($findRelated) {
-                    if ($findRelated->quantity - $product['quantity'] < 0) {
-                        return $this->showMessage('Товара с такими параметрами нет!', 400);
+                        if ($findRelated) {
+                            if ($findRelated->quantity - $product['quantity'] < 0) {
+                                return $this->showMessage('Товара с такими параметрами нет!', 400);
+                            }
+                        }
                     }
+                } else {
+                    return $this->showMessage('Товарів нема!', 400);
                 }
-            }
-            $order = Order::create([
-                'status_id' => 1,
-                'first_name' => $request->firstName,
-                'last_name' => $request->lastName,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'shipping_city' => $request->shippingCity,
-                'shipping_address' => $request->shippingAddress,
-                'comment' => $request->comment ?: '',
-            ]);
-
-            foreach ($request->products as $product) {
-                $orderProduct = OrderProduct::create([
-                    'order_id' => $order->order_id,
-                    'product_id' => $product['id'],
-                    'quantity' => $product['quantity'],
-                    'price' => $product['purePrice'],
-                    'total' => $product['purePrice'] * $product['quantity'],
-                    'size' => $product['size'],
-                    'color' => $product['color'],
+                $token = "5489467175:AAG_KRuxmEUR6d4Jo6auFh2RuxNRdYRjJIU";
+                $chat_id = "-694122577";
+                $order = Order::create([
+                    'status_id' => 1,
+                    'first_name' => $request->firstName,
+                    'last_name' => $request->lastName,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                    'shipping_city' => $request->shippingCity,
+                    'shipping_area' => $request->areaName,
+                    'shipping_address' => $request->shippingAddress,
+                    'comment' => $request->comment ?: '',
+                    'promocode_id' => $request->discount ? $request->discount['id'] : null,
+                    'promocode_discount' => $request->discount ? $request->discount['total'] : 0,
                 ]);
-                DB::table('color_size_product')
-                    ->where([
+
+                $botTextOrder = '<b>Інформація про замовлення</b>%0A%0A';
+                foreach ($request->products as $product) {
+                    try {
+                        fopen("https://api.telegram.org/bot{$token}/sendPhoto?chat_id={$chat_id}&photo={$product['image']}", "r");
+                    } catch (\Exception $telegramException) {
+
+                    }
+                    $price = $product['purePrice'] * $product['quantity'];
+                    $botTextOrder .= "<i>{$product['name']} - колір({$product['color']}), розмір({$product['size']}) - {$product['quantity']} * {$product['purePrice']}₴ = {$price}₴</i> %0A";
+                    $orderProduct = OrderProduct::create([
+                        'order_id' => $order->order_id,
                         'product_id' => $product['id'],
-                        'color_id' => $product['colorId'],
-                        'size_id' => $product['sizeId'],
-                    ])
-                    ->update([
-                        'quantity' => DB::raw("quantity - {$product['quantity']}"),
-                        'updated_at' => Carbon::now(),
+                        'quantity' => $product['quantity'],
+                        'price' => $product['purePrice'],
+                        'total' => $product['purePrice'] * $product['quantity'],
+                        'size' => $product['size'],
+                        'color' => $product['color'],
                     ]);
-                $findSizeColor = DB::table('color_size_product')
-                    ->where([
-                        'product_id' => $product['id'],
-                        'color_id' => $product['colorId'],
-                        'size_id' => $product['sizeId'],
-                    ])->first();
-                $orderProduct->product_option_id = $findSizeColor->color_size_product_id;
-                $orderProduct->save();
-            }
+                    DB::table('color_size_product')
+                        ->where([
+                            'product_id' => $product['id'],
+                            'color_id' => $product['colorId'],
+                            'size_id' => $product['sizeId'],
+                        ])
+                        ->update([
+                            'quantity' => DB::raw("quantity - {$product['quantity']}"),
+                            'updated_at' => Carbon::now(),
+                        ]);
+                    $findSizeColor = DB::table('color_size_product')
+                        ->where([
+                            'product_id' => $product['id'],
+                            'color_id' => $product['colorId'],
+                            'size_id' => $product['sizeId'],
+                        ])->first();
+                    $orderProduct->product_option_id = $findSizeColor->color_size_product_id;
+                    $orderProduct->save();
+                }
 
-            OrderHistory::create([
-                'order_id' => $order->order_id,
-                'notify_customer' => 1,
-                'history_comment' => '',
-                'history_status' => 1,
-            ]);
+                OrderHistory::create([
+                    'order_id' => $order->order_id,
+                    'notify_customer' => 1,
+                    'history_comment' => '',
+                    'history_status' => 1,
+                ]);
+                $botTextOrder .= '%0A<b>Замовник:</b>%0A';
+                $botTextOrder .= '<i>'. $request->firstName . ' ' . $request->lastName .': </i><a herf="tel:' . $request->phone . '">' . $request->phone . '</a>%0A';
+                $botTextOrder .= '%0A<a href="http://www.demo-storee.manager-app.xyz/admin/order/' . "{$order->order_id}" . '">Посилання на замовлення</a>';
+                fopen("https://api.telegram.org/bot{$token}/sendMessage?chat_id={$chat_id}&parse_mode=html&text={$botTextOrder}", "r");
 
-            return response()->json($order);
-        } catch (\Exception $exception) {
-            return $this->showMessage('Ошибка при оформлении заказа!', 400);
-        }
+                return response()->json($token);
+//        } catch (\Exception $exception) {
+//            return $this->showMessage('Ошибка при оформлении заказа!', 400);
+//        }
     }
 
     public function addHistory(Request $request)

@@ -17,6 +17,7 @@ class CreateProductsTable extends Migration
             $table->increments('product_id');
             $table->string('model');
             $table->string('image')->nullable();
+            $table->string('table_size')->nullable();
             $table->decimal('price')->default(0);
             $table->boolean('status')->default(0);
             $table->mediumInteger('viewed')->default(1);

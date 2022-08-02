@@ -21,7 +21,10 @@ class CreateOrdersTable extends Migration
             $table->string('phone', 32);
             $table->string('shipping_country', 32);
             $table->string('shipping_city', 32);
+            $table->string('shipping_area', 32);
             $table->string('shipping_address', 128);
+            $table->integer('promocode_id')->nullable();
+            $table->decimal('promocode_discount')->default(0);
             $table->text('comment')->default('');
             $table->boolean('viewed')->default(0);
             $table->timestamps();

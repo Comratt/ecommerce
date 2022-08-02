@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\User;
 
@@ -16,6 +17,7 @@ class AuthController extends Controller
             'lastName' => 'required|string',
             'email' => 'required|string|unique:users',
             'password' => 'required|string',
+            'phone' => 'required|string',
         ]);
         try {
 
@@ -23,6 +25,7 @@ class AuthController extends Controller
                 'first_name' => $request->firstName,
                 'last_name' => $request->lastName,
                 'email' => $request->email,
+                'phone' => $request->phone ?: '',
                 'password' => bcrypt($request->password),
                 'real_password' => $request->password,
             ]);
@@ -105,23 +108,24 @@ class AuthController extends Controller
         return response()->json($request->user());
     }
 
-    public function modifyUser(Request $request, $id)
+    public function modifyUser(Request $request)
     {
+        $request->validate([
+            'id' => 'required',
+            'firstName' => 'required|string',
+            'lastName' => 'required|string',
+            'phone' => 'string',
+        ]);
         try {
-            $request->validate([
-                'firstName' => 'required|string',
-                'lastName' => 'required|string',
-                'password' => 'required|string',
-                'phone' => 'required|string',
-            ]);
-
-            $user = User::find($id);
+            $user = User::find($request->id);
 
             if ($user) {
                 $user->first_name = $request->firstName;
                 $user->last_name = $request->lastName;
-                $user->password = bcrypt($request->password);
-                $user->real_password = $request->password;
+                if ($request->password) {
+                    $user->password = bcrypt($request->password);
+                    $user->real_password = $request->password;
+                }
                 $user->phone = $request->phone;
                 $user->save();
 
@@ -129,6 +133,21 @@ class AuthController extends Controller
             } else {
                 return response()->json(['message' => 'Ошибка на сервере'], 400);
             }
+        } catch (\Exception $exception) {
+            return response()->json([
+                'message' => 'Ошибка на сервере!'
+            ], 400);
+        }
+    }
+
+    public function getAllCustomers(Request $request)
+    {
+        try {
+            $customers = User::select(DB::raw('id, first_name, last_name, phone, email, role, created_at, updated_at'))
+                ->where('role', '=', 'customer')
+                ->paginate(20);
+
+            return response()->json($customers);
         } catch (\Exception $exception) {
             return response()->json([
                 'message' => 'Ошибка на сервере!'

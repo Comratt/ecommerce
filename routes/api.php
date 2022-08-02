@@ -63,6 +63,20 @@ Route::group(['prefix' => 'admin'], function() {
     // RETURNS
     Route::post('/return/{id}', 'returnController@store');
 
+    //CUSTOMERS
+    Route::get('/customers', 'AuthController@getAllCustomers');
+    Route::post('/customers/update', 'AuthController@modifyUser');
+
+    //PROMOCODES
+    Route::get('/promocodes', 'PromoController@showAll');
+    Route::post('/promocodes', 'PromoController@store');
+    Route::post('/promocodes/{id}/edit', 'PromoController@update');
+    Route::delete('/promocodes/{id}', 'PromoController@delete');
+    Route::post('/promocodes/get', 'PromoController@getByName');
+
     //ANALYTICS
     Route::get('/analytics', 'ProductController@getAnalytics');
+    Route::get('/analytics/orders', 'ProductController@getAnalyticsOrders');
+    Route::get('/analytics/categories', 'ProductController@getAnalyticsCategories');
+    Route::get('/analytics/products', 'ProductController@getAnalyticsProducts');
 });

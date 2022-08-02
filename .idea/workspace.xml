@@ -4,20 +4,14 @@
     <list default="true" id="432c13d1-a4dd-48ae-bd9a-fcde218c8af0" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/Http/Controllers/AuthController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/AuthController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/BannerController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/BannerController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/CategoryController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/CategoryController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/OptionController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/OptionController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/OptionValueController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/OptionValueController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/OrderController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/OrderController.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/Http/Controllers/ProductController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/ProductController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Option.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Option.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/Order.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Order.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/OrderProduct.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/OrderProduct.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/Product.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Product.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/User.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/database.php" beforeDir="false" afterPath="$PROJECT_DIR$/config/database.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/migrations/2014_10_12_000000_create_users_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2014_10_12_000000_create_users_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/app.php" beforeDir="false" afterPath="$PROJECT_DIR$/config/app.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/migrations/2020_10_21_164642_create_products_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2020_10_21_164642_create_products_table.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/database/migrations/2020_10_21_171837_create_orders_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2020_10_21_171837_create_orders_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/migrations/2020_10_21_173742_create_order_products_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2020_10_21_173742_create_order_products_table.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/routes/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/routes/api.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -410,7 +404,53 @@
       <workItem from="1655044080536" duration="1326000" />
       <workItem from="1655046191912" duration="1796000" />
       <workItem from="1655048035028" duration="1730000" />
-      <workItem from="1655050050480" duration="637000" />
+      <workItem from="1655050050480" duration="1098000" />
+      <workItem from="1655122966870" duration="1502000" />
+      <workItem from="1655125746691" duration="1538000" />
+      <workItem from="1655134778977" duration="850000" />
+      <workItem from="1655140539875" duration="627000" />
+      <workItem from="1655198560618" duration="1788000" />
+      <workItem from="1655200388765" duration="1788000" />
+      <workItem from="1655202195652" duration="1852000" />
+      <workItem from="1655204070288" duration="1740000" />
+      <workItem from="1655222526267" duration="1788000" />
+      <workItem from="1655224336105" duration="1721000" />
+      <workItem from="1655227702591" duration="1087000" />
+      <workItem from="1655305559811" duration="1112000" />
+      <workItem from="1655308489429" duration="86000" />
+      <workItem from="1655395031337" duration="1758000" />
+      <workItem from="1655399620590" duration="1796000" />
+      <workItem from="1655402311826" duration="1686000" />
+      <workItem from="1655404121939" duration="1775000" />
+      <workItem from="1655406513551" duration="1665000" />
+      <workItem from="1655410015011" duration="1811000" />
+      <workItem from="1655411901537" duration="1063000" />
+      <workItem from="1655560280232" duration="1502000" />
+      <workItem from="1655743806891" duration="1210000" />
+      <workItem from="1655745924177" duration="748000" />
+      <workItem from="1655747741957" duration="610000" />
+      <workItem from="1657191138759" duration="1673000" />
+      <workItem from="1657207787583" duration="4278000" />
+      <workItem from="1657293479012" duration="1646000" />
+      <workItem from="1657295614913" duration="751000" />
+      <workItem from="1657298165938" duration="750000" />
+      <workItem from="1657359276357" duration="1617000" />
+      <workItem from="1657361279844" duration="1008000" />
+      <workItem from="1657363606797" duration="625000" />
+      <workItem from="1657366855767" duration="715000" />
+      <workItem from="1657377526945" duration="2111000" />
+      <workItem from="1657379659452" duration="1394000" />
+      <workItem from="1657381938126" duration="1346000" />
+      <workItem from="1657638802453" duration="2021000" />
+      <workItem from="1657821308599" duration="1449000" />
+      <workItem from="1658069084796" duration="1629000" />
+      <workItem from="1658071147386" duration="1721000" />
+      <workItem from="1658072967299" duration="2544000" />
+      <workItem from="1658075674413" duration="634000" />
+      <workItem from="1659212356904" duration="1216000" />
+      <workItem from="1659265773130" duration="12000" />
+      <workItem from="1659278245648" duration="1447000" />
+      <workItem from="1659455028926" duration="607000" />
     </task>
     <servers />
   </component>

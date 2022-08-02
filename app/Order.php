@@ -8,5 +8,5 @@ class Order extends Model
 {
     protected $primaryKey = 'order_id';
 
-    protected $fillable = ['status_id', 'first_name', 'last_name', 'phone', 'email', 'shipping_city', 'shipping_address', 'comment'];
+    protected $fillable = ['status_id', 'first_name', 'last_name', 'phone', 'email', 'shipping_city', 'shipping_area', 'shipping_address', 'promocode_id', 'promocode_discount', 'comment'];
 }

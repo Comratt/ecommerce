@@ -49,6 +49,21 @@ class Product extends Model
         if ($price) {
             $productsQuery->whereBetween('products.price', [$price]);
         }
+        if ($is_available && (!$size && !$color)) {
+            $productsQuery
+                ->leftJoin('color_size_product', 'products.product_id', '=', 'color_size_product.product_id')
+                ->where([
+                    ['products.status', '=', 1],
+                    ['color_size_product.quantity', '>', 0]
+                ]);
+        }
+        if ($is_available && ($size || $color)) {
+            $productsQuery
+                ->where([
+                    ['products.status', '=', 1],
+                    ['color_size_product.quantity', '>', 0]
+                ]);
+        }
         if ($category) {
             $productsQuery->leftJoin('product_categories', 'products.product_id', '=', 'product_categories.product_id');
             $productsQuery->leftJoin('categories', 'categories.category_id', '=', 'product_categories.category_id');
@@ -57,14 +72,42 @@ class Product extends Model
 
             if ($color && !$size) {
                 $productsQuery->whereIn('option_values.option_value_id', $color);
+                if ($is_available) {
+                    $productsQuery
+                        ->where([
+                            ['products.status', '=', 1],
+                            ['color_size_product.quantity', '>', 0]
+                        ]);
+                }
             } else if ($size && !$color) {
                 $productsQuery->whereIn('option_values.option_value_id', $size);
+                if ($is_available) {
+                    $productsQuery
+                        ->where([
+                            ['products.status', '=', 1],
+                            ['color_size_product.quantity', '>', 0]
+                        ]);
+                }
             } else if ($size && $color) {
                 $productsQuery->whereIn('option_values.option_value_id', $color);
                 $productsQuery->whereIn('option_values.option_value_id', $size);
+                if ($is_available) {
+                    $productsQuery
+                        ->where([
+                            ['products.status', '=', 1],
+                            ['color_size_product.quantity', '>', 0]
+                        ]);
+                }
             }
             if ($price) {
                 $productsQuery->whereBetween('products.price', [$price]);
+            }
+            if ($is_available && (!$size && !$color)) {
+                $productsQuery
+                    ->where([
+                        ['products.status', '=', 1],
+                        ['color_size_product.quantity', '>', 0]
+                    ]);
             }
         }
         if ($sortBy) {
@@ -79,15 +122,6 @@ class Product extends Model
             } elseif ($sortBy == 'relevance') {
                 $productsQuery->orderBy('products.viewed', 'desc');
             }
-        }
-
-        if ($is_available) {
-            $productsQuery
-                ->leftJoin('color_size_product', 'products.product_id', '=', 'color_size_product.product_id')
-                ->where([
-                ['status', '=', 1],
-                ['color_size_product.quantity', '>', 0]
-            ]);
         }
 
         $products = $productsQuery
