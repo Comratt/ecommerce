@@ -61,17 +61,26 @@ class BannerController extends Controller
                 $newBanner->sort_order = $request->sort_order;
             }
             if ($request->hasFile('image')) {
-                $extension = $request->file('image')->getClientOriginalExtension();
-                $filenameStore = Str::random(8) . time() . '.' . $extension;
-                $request->file('image')->storeAs('images', $filenameStore);
-                $img = Image::make(public_path("uploads/images/$filenameStore"));
-                $img->orientate();
-                $img->resize(1920, null, function($constraint){
-                    $constraint->upsize();
-                    $constraint->aspectRatio();
-                });
-                $img->save(public_path("uploads/images/$filenameStore"));
-                $bannerPhoto = $filenameStore;
+                $mime = $request->file('image')->getMimeType();
+                if(strstr($mime, "video/")){
+                    // this code for video
+                    $extension = $request->file('image')->getClientOriginalExtension();
+                    $filenameStore = Str::random(8) . time() . '.' . $extension;
+                    $request->file('image')->storeAs('images', $filenameStore);
+                    $bannerPhoto = $filenameStore;
+                }else if(strstr($mime, "image/")){
+                    // this code for image
+                    $filenameStore = Str::random(8) . time() . '.' . 'webp';
+                    $request->file('image')->storeAs('images', $filenameStore);
+                    $img = Image::make(public_path("uploads/images/$filenameStore"))->encode('webp', 60);
+                    $img->orientate();
+                    $img->resize(1920, null, function($constraint){
+                        $constraint->upsize();
+                        $constraint->aspectRatio();
+                    });
+                    $img->save(public_path("uploads/images/$filenameStore"), 60);
+                    $bannerPhoto = $filenameStore;
+                }
             }
             $newBanner->image = $bannerPhoto;
             $newBanner->save();
@@ -114,7 +123,7 @@ class BannerController extends Controller
 //            'image' => 'mimes:jpeg,jpg,png,gif|required',
 //        ]);
 
-        try {
+//        try {
             $banner = Banner::find($id);
 
             if ($banner) {
@@ -124,17 +133,26 @@ class BannerController extends Controller
                 $banner->sort_order = $request->sort_order;
                 $banner->description = $request->description;
                 if ($request->hasFile('image')) {
-                    $extension = $request->file('image')->getClientOriginalExtension();
-                    $filenameStore = Str::random(8) . time() . '.' . $extension;
-                    $request->file('image')->storeAs('images', $filenameStore);
-                    $img = Image::make(public_path("uploads/images/$filenameStore"));
-                    $img->orientate();
-                    $img->resize(1920, null, function($constraint){
-                        $constraint->upsize();
-                        $constraint->aspectRatio();
-                    });
-                    $img->save(public_path("uploads/images/$filenameStore"));
-                    $bannerPhoto = $filenameStore;
+                    $mime = $request->file('image')->getMimeType();
+                    if(strstr($mime, "video/")){
+                        // this code for video
+                        $extension = $request->file('image')->getClientOriginalExtension();
+                        $filenameStore = Str::random(8) . time() . '.' . $extension;
+                        $request->file('image')->storeAs('images', $filenameStore);
+                        $bannerPhoto = $filenameStore;
+                    }else if(strstr($mime, "image/")){
+                        // this code for image
+                        $filenameStore = Str::random(8) . time() . '.' . 'webp';
+                        $request->file('image')->storeAs('images', $filenameStore);
+                        $img = Image::make(public_path("uploads/images/$filenameStore"))->encode('webp', 60);
+                        $img->orientate();
+                        $img->resize(1920, null, function($constraint){
+                            $constraint->upsize();
+                            $constraint->aspectRatio();
+                        });
+                        $img->save(public_path("uploads/images/$filenameStore"), 60);
+                        $bannerPhoto = $filenameStore;
+                    }
                 }
                 $banner->image = $bannerPhoto;
                 $banner->save();
@@ -143,9 +161,9 @@ class BannerController extends Controller
             }
 
             return $this->showMessage('Такого баннера не существует!', 404);
-        } catch (\Exception $exception) {
-            return $this->showMessage('Ошибка при редактирования баннера!', 400);
-        }
+//        } catch (\Exception $exception) {
+//            return $this->showMessage('Ошибка при редактирования баннера!', 400);
+//        }
     }
 
     /**

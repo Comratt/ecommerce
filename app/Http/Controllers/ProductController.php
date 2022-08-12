@@ -200,16 +200,15 @@ class ProductController extends Controller
                     $productPhoto = 'no-photo.jpg';
                     $productSizePhoto = null;
                     if ($request->hasFile('mainImage')) {
-                        $extension = $request->file('mainImage')->getClientOriginalExtension();
-                        $filenameStore = Str::random(8) . time() . '.' . $extension;
+                        $filenameStore = Str::random(8) . time() . '.' . 'webp';
                         $request->file('mainImage')->storeAs('images', $filenameStore);
-                        $img = Image::make(public_path("uploads/images/$filenameStore"))->encode('webp', 80);
+                        $img = Image::make(public_path("uploads/images/$filenameStore"))->encode('webp', 60);
                         $img->orientate();
                         $img->resize(1280, null, function($constraint){
                             $constraint->upsize();
                             $constraint->aspectRatio();
                         });
-                        $img->save(public_path("uploads/images/$filenameStore"));
+                        $img->save(public_path("uploads/images/$filenameStore"), 60);
                         $productPhoto = $filenameStore;
                     }
                     if ($request->hasFile('tableSize')) {
@@ -243,34 +242,51 @@ class ProductController extends Controller
                             if ($productImage) {
                                 $productImageName = $productImage->image ?: 'no-photo.jpg';
                                 if ($request->hasFile('image_' . $imageId)) {
-                                    $extension = $request->file('image_' . $imageId)->getClientOriginalExtension();
-                                    $filenameStore = Str::random(8) . time() . '.' . $extension;
-                                    $request->file('image_' . $imageId)->storeAs('images', $filenameStore);
-                                    $img = Image::make(public_path("uploads/images/$filenameStore"));
-                                    $img->orientate();
-                                    $img->resize(1280, null, function ($constraint) {
-                                        $constraint->upsize();
-                                        $constraint->aspectRatio();
-                                    });
-                                    $img->save(public_path("uploads/images/$filenameStore"));
-                                    $productImageName = $filenameStore;
+                                    $mime = $request->file('image_' . $imageId)->getMimeType();
+                                    if(strstr($mime, "video/")){
+                                        // this code for video
+                                        $extension = $request->file('image_' . $imageId)->getClientOriginalExtension();
+                                        $filenameStore = Str::random(8) . time() . '.' . $extension;
+                                        $request->file('image_' . $imageId)->storeAs('images', $filenameStore);
+                                        $productImageName = $filenameStore;
+                                    } elseif (strstr($mime, "image/")) {
+                                        // this code for image
+                                        $filenameStore = Str::random(8) . time() . '.' . 'webp';
+                                        $request->file('image_' . $imageId)->storeAs('images', $filenameStore);
+                                        $img = Image::make(public_path("uploads/images/$filenameStore"))->encode('webp', 60);
+                                        $img->orientate();
+                                        $img->resize(1280, null, function ($constraint) {
+                                            $constraint->upsize();
+                                            $constraint->aspectRatio();
+                                        });
+                                        $img->save(public_path("uploads/images/$filenameStore"), 60);
+                                        $productImageName = $filenameStore;
+                                    }
                                 }
                                 $productImage->image = $productImageName;
                                 $productImage->save();
                             } else {
                                 $productImageName = 'no-photo.jpg';
                                 if ($request->hasFile('image_' . $imageId)) {
-                                    $extension = $request->file('image_' . $imageId)->getClientOriginalExtension();
-                                    $filenameStore = Str::random(8) . time() . '.' . $extension;
-                                    $request->file('image_' . $imageId)->storeAs('images', $filenameStore);
-                                    $img = Image::make(public_path("uploads/images/$filenameStore"));
-                                    $img->orientate();
-                                    $img->resize(1280, null, function ($constraint) {
-                                        $constraint->upsize();
-                                        $constraint->aspectRatio();
-                                    });
-                                    $img->save(public_path("uploads/images/$filenameStore"));
-                                    $productImageName = $filenameStore;
+                                    $mime = $request->file('image_' . $imageId)->getMimeType();
+                                    if(strstr($mime, "video/")){
+                                        // this code for video
+                                        $extension = $request->file('image_' . $imageId)->getClientOriginalExtension();
+                                        $filenameStore = Str::random(8) . time() . '.' . $extension;
+                                        $request->file('image_' . $imageId)->storeAs('images', $filenameStore);
+                                        $productImageName = $filenameStore;
+                                    } elseif (strstr($mime, "image/")) {
+                                        $filenameStore = Str::random(8) . time() . '.' . 'webp';
+                                        $request->file('image_' . $imageId)->storeAs('images', $filenameStore);
+                                        $img = Image::make(public_path("uploads/images/$filenameStore"))->encode('webp', 60);
+                                        $img->orientate();
+                                        $img->resize(1280, null, function ($constraint) {
+                                            $constraint->upsize();
+                                            $constraint->aspectRatio();
+                                        });
+                                        $img->save(public_path("uploads/images/$filenameStore"), 60);
+                                        $productImageName = $filenameStore;
+                                    }
                                 }
                                 $productNewImage = new ProductImage;
                                 $productNewImage->product_id = $product->product_id;
@@ -392,18 +408,16 @@ class ProductController extends Controller
                     $product->price = $reqProduct->price;
                     $product->status = $reqProduct->status ?: 0;
                     $productPhoto = $product->image ?: 'no-photo.jpg';
-                    $productSizePhoto = null;
                     if ($request->hasFile('mainImage')) {
-                        $extension = $request->file('mainImage')->getClientOriginalExtension();
-                        $filenameStore = Str::random(8) . time() . '.' . $extension;
+                        $filenameStore = Str::random(8) . time() . '.' . 'webp';
                         $request->file('mainImage')->storeAs('images', $filenameStore);
-                        $img = Image::make(public_path("uploads/images/$filenameStore"))->encode('webp', 80);
+                        $img = Image::make(public_path("uploads/images/$filenameStore"))->encode('webp', 60);
                         $img->orientate();
                         $img->resize(1280, null, function ($constraint) {
                             $constraint->upsize();
                             $constraint->aspectRatio();
                         });
-                        $img->save(public_path("uploads/images/$filenameStore"));
+                        $img->save(public_path("uploads/images/$filenameStore"), 60);
                         $productPhoto = $filenameStore;
                     }
                     if ($request->hasFile('tableSize')) {
@@ -450,34 +464,51 @@ class ProductController extends Controller
                                 array_push($imageIds, $imageId);
                                 $productImageName = $productImage->image ?: 'no-photo.jpg';
                                 if ($request->hasFile('image_' . $imageId)) {
-                                    $extension = $request->file('image_' . $imageId)->getClientOriginalExtension();
-                                    $filenameStore = Str::random(8) . time() . '.' . $extension;
-                                    $request->file('image_' . $imageId)->storeAs('images', $filenameStore);
-                                    $img = Image::make(public_path("uploads/images/$filenameStore"));
-                                    $img->orientate();
-                                    $img->resize(1280, null, function ($constraint) {
-                                        $constraint->upsize();
-                                        $constraint->aspectRatio();
-                                    });
-                                    $img->save(public_path("uploads/images/$filenameStore"));
-                                    $productImageName = $filenameStore;
+                                    $mime = $request->file('image_' . $imageId)->getMimeType();
+                                    if(strstr($mime, "video/")){
+                                        // this code for video
+                                        $extension = $request->file('image_' . $imageId)->getClientOriginalExtension();
+                                        $filenameStore = Str::random(8) . time() . '.' . $extension;
+                                        $request->file('image_' . $imageId)->storeAs('images', $filenameStore);
+                                        $productImageName = $filenameStore;
+                                    } elseif (strstr($mime, "image/")) {
+                                        // this code for image
+                                        $filenameStore = Str::random(8) . time() . '.' . 'webp';
+                                        $request->file('image_' . $imageId)->storeAs('images', $filenameStore);
+                                        $img = Image::make(public_path("uploads/images/$filenameStore"))->encode('webp', 60);
+                                        $img->orientate();
+                                        $img->resize(1280, null, function ($constraint) {
+                                            $constraint->upsize();
+                                            $constraint->aspectRatio();
+                                        });
+                                        $img->save(public_path("uploads/images/$filenameStore"), 60);
+                                        $productImageName = $filenameStore;
+                                    }
                                 }
                                 $productImage->image = $productImageName;
                                 $productImage->save();
                             } else {
                                 $productImageName = 'no-photo.jpg';
                                 if ($request->hasFile('image_' . $imageId)) {
-                                    $extension = $request->file('image_' . $imageId)->getClientOriginalExtension();
-                                    $filenameStore = Str::random(8) . time() . '.' . $extension;
-                                    $request->file('image_' . $imageId)->storeAs('images', $filenameStore);
-                                    $img = Image::make(public_path("uploads/images/$filenameStore"));
-                                    $img->orientate();
-                                    $img->resize(1280, null, function ($constraint) {
-                                        $constraint->upsize();
-                                        $constraint->aspectRatio();
-                                    });
-                                    $img->save(public_path("uploads/images/$filenameStore"));
-                                    $productImageName = $filenameStore;
+                                    $mime = $request->file('image_' . $imageId)->getMimeType();
+                                    if(strstr($mime, "video/")){
+                                        // this code for video
+                                        $extension = $request->file('image_' . $imageId)->getClientOriginalExtension();
+                                        $filenameStore = Str::random(8) . time() . '.' . $extension;
+                                        $request->file('image_' . $imageId)->storeAs('images', $filenameStore);
+                                        $productImageName = $filenameStore;
+                                    } elseif (strstr($mime, "image/")) {
+                                        $filenameStore = Str::random(8) . time() . '.' . 'webp';
+                                        $request->file('image_' . $imageId)->storeAs('images', $filenameStore);
+                                        $img = Image::make(public_path("uploads/images/$filenameStore"))->encode('webp', 60);
+                                        $img->orientate();
+                                        $img->resize(1280, null, function ($constraint) {
+                                            $constraint->upsize();
+                                            $constraint->aspectRatio();
+                                        });
+                                        $img->save(public_path("uploads/images/$filenameStore"), 60);
+                                        $productImageName = $filenameStore;
+                                    }
                                 }
                                 $productNewImage = new ProductImage;
                                 $productNewImage->product_id = $id;

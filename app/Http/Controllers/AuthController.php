@@ -29,6 +29,9 @@ class AuthController extends Controller
                 'password' => bcrypt($request->password),
                 'real_password' => $request->password,
             ]);
+            if ($request->user()->role == 'admin') {
+                $user->role = $request->role;
+            }
 
             $user->save();
 
@@ -126,6 +129,9 @@ class AuthController extends Controller
                     $user->password = bcrypt($request->password);
                     $user->real_password = $request->password;
                 }
+                if ($request->user()->role == 'admin' && $request->id != $request->user()->id) {
+                    $user->role = $request->role;
+                }
                 $user->phone = $request->phone;
                 $user->save();
 
@@ -143,9 +149,14 @@ class AuthController extends Controller
     public function getAllCustomers(Request $request)
     {
         try {
-            $customers = User::select(DB::raw('id, first_name, last_name, phone, email, role, created_at, updated_at'))
-                ->where('role', '=', 'customer')
-                ->paginate(20);
+            if ($request->user()->role == 'admin') {
+                $customers = User::select(DB::raw('id, first_name, last_name, phone, email, role, created_at, updated_at'))
+                    ->paginate(20);
+            } else {
+                $customers = User::select(DB::raw('id, first_name, last_name, phone, email, role, created_at, updated_at'))
+                    ->where('role', '=', 'customer')
+                    ->paginate(20);
+            }
 
             return response()->json($customers);
         } catch (\Exception $exception) {
