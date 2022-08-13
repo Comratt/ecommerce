@@ -2,14 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="432c13d1-a4dd-48ae-bd9a-fcde218c8af0" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/Http/Controllers/AuthController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/AuthController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/BannerController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/BannerController.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/Http/Controllers/OrderController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/OrderController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/ProductController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/ProductController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Kernel.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Kernel.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/User.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Order.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Order.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/OrderHistory.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/OrderHistory.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Product.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Product.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/migrations/2020_10_21_171837_create_orders_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2020_10_21_171837_create_orders_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/migrations/2022_03_31_193906_add_order_history_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2022_03_31_193906_add_order_history_table.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/routes/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/routes/api.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -464,6 +464,14 @@
       <workItem from="1660222226569" duration="1194000" />
       <workItem from="1660237451233" duration="1330000" />
       <workItem from="1660309621520" duration="1124000" />
+      <workItem from="1660327353394" duration="1790000" />
+      <workItem from="1660329161850" duration="861000" />
+      <workItem from="1660394639547" duration="1808000" />
+      <workItem from="1660396466367" duration="1802000" />
+      <workItem from="1660398285138" duration="1327000" />
+      <workItem from="1660410593229" duration="1204000" />
+      <workItem from="1660413351828" duration="1790000" />
+      <workItem from="1660415160700" duration="269000" />
     </task>
     <servers />
   </component>

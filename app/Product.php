@@ -41,10 +41,12 @@ class Product extends Model
         } else if ($size && $color) {
             $productsQuery
                 ->leftJoin('color_size_product', 'products.product_id', '=', 'color_size_product.product_id')
-                ->leftJoin('product_options', 'product_options.product_option_id', '=', 'color_size_product.size_id')
-                ->leftJoin('option_values', 'option_values.option_value_id', '=', 'product_options.option_value_id')
-                ->whereIn('option_values.option_value_id', $size)
-                ->whereIn('option_values.option_value_id', $color);
+                ->leftJoin('product_options as product_size_t', 'product_size_t.product_option_id', '=', 'color_size_product.size_id')
+                ->leftJoin('product_options as product_color_t', 'product_color_t.product_option_id', '=', 'color_size_product.color_id')
+                ->leftJoin('option_values as option_size_t', 'option_size_t.option_value_id', '=', 'product_size_t.option_value_id')
+                ->leftJoin('option_values as option_color_t', 'option_color_t.option_value_id', '=', 'product_color_t.option_value_id')
+                ->whereIn('option_size_t.option_value_id', $size)
+                ->whereIn('option_color_t.option_value_id', $color);
         }
         if ($price) {
             $productsQuery->whereBetween('products.price', [$price]);
@@ -89,8 +91,8 @@ class Product extends Model
                         ]);
                 }
             } else if ($size && $color) {
-                $productsQuery->whereIn('option_values.option_value_id', $color);
-                $productsQuery->whereIn('option_values.option_value_id', $size);
+                $productsQuery->whereIn('option_size_t.option_value_id', $size);
+                $productsQuery->whereIn('option_color_t.option_value_id', $color);
                 if ($is_available) {
                     $productsQuery
                         ->where([

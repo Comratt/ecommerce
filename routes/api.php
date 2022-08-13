@@ -53,6 +53,7 @@ Route::group(['prefix' => 'admin'], function() {
         Route::get('/analytics/orders', 'ProductController@getAnalyticsOrders');
         Route::get('/analytics/categories', 'ProductController@getAnalyticsCategories');
         Route::get('/analytics/products', 'ProductController@getAnalyticsProducts');
+        Route::get('/managers',         'AuthController@getAllManagers');
     });
     Route::group(['middleware' => ['auth:api','subadmin']], function (){
         // BANNERS
@@ -79,8 +80,9 @@ Route::group(['prefix' => 'admin'], function() {
         // RETURNS
         Route::post('/return/{id}', 'ReturnController@store');
         //CUSTOMERS
-        Route::get('/customers', 'AuthController@getAllCustomers');
+        Route::get('/customers',         'AuthController@getAllCustomers');
         Route::post('/customers/update', 'AuthController@modifyUser');
+        Route::post('/signup-admin',     'AuthController@signupFromAdmin');
         // PROMOCODES
         Route::get('/promocodes', 'PromoController@showAll');
         Route::post('/promocodes', 'PromoController@store');

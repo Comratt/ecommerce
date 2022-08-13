@@ -28,10 +28,39 @@ class AuthController extends Controller
                 'phone' => $request->phone ?: '',
                 'password' => bcrypt($request->password),
                 'real_password' => $request->password,
+                'role' => 'customer'
             ]);
-            if ($request->user()->role == 'admin') {
-                $user->role = $request->role;
-            }
+
+            $user->save();
+
+            return response()->json($user, 201);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'message' => 'Ошибка на сервере!'
+            ], 400);
+        }
+    }
+
+    public function signupFromAdmin(Request $request)
+    {
+        $request->validate([
+            'firstName' => 'required|string',
+            'lastName' => 'required|string',
+            'email' => 'required|string|unique:users',
+            'password' => 'required|string',
+            'phone' => 'required|string',
+        ]);
+        try {
+
+            $user = new User([
+                'first_name' => $request->firstName,
+                'last_name' => $request->lastName,
+                'email' => $request->email,
+                'phone' => $request->phone ?: '',
+                'password' => bcrypt($request->password),
+                'real_password' => $request->password,
+                'role' => $request->user()->role == 'admin' ? $request->role : 'customer'
+            ]);
 
             $user->save();
 
@@ -69,7 +98,7 @@ class AuthController extends Controller
 
         $user = $request->user();
 
-        if ($request->from_admin && $user->role != 'admin') {
+        if ($request->from_admin && $user->role == 'customer') {
             return response()->json([
                 'message' => 'Такого админа нет'
             ], 404);
@@ -159,6 +188,22 @@ class AuthController extends Controller
             }
 
             return response()->json($customers);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'message' => 'Ошибка на сервере!'
+            ], 400);
+        }
+    }
+
+    public function getAllManagers(Request $request)
+    {
+        try {
+            $managers = User::select(DB::raw('id, first_name, last_name, phone, email, role, created_at, updated_at'))
+                ->where('role', '=', 'admin')
+                ->orWhere('role', '=', 'subadmin')
+                ->paginate(20);
+
+            return response()->json($managers);
         } catch (\Exception $exception) {
             return response()->json([
                 'message' => 'Ошибка на сервере!'

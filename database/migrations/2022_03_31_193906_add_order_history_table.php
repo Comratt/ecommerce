@@ -19,9 +19,11 @@ class AddOrderHistoryTable extends Migration
             $table->boolean('notify_customer')->default(0);
             $table->string('history_comment')->nullable();
             $table->string('history_status');
+            $table->unsignedInteger('manager_id')->nullable();
             $table->timestamps();
 
             $table->foreign('order_id')->references('order_id')->on('orders');
+            $table->foreign('manager_id')->references('id')->on('users');
         });
     }
 

@@ -27,9 +27,11 @@ class CreateOrdersTable extends Migration
             $table->decimal('promocode_discount')->default(0);
             $table->text('comment')->default('');
             $table->boolean('viewed')->default(0);
+            $table->unsignedInteger('manager_id')->nullable();
             $table->timestamps();
 
             $table->foreign('status_id')->references('order_status_id')->on('order_statuses');
+            $table->foreign('manager_id')->references('id')->on('users');
         });
     }
 

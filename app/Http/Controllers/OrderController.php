@@ -37,16 +37,21 @@ class OrderController extends Controller
             $status = $request->input('status');
             $createdAt = $request->input('createdAt');
             $updatedAt = $request->input('updatedAt');
+            $managerId = $request->input('managerId');
 
-            $ordersQuery = Order::select(DB::raw('*, SUM(`order_products`.`total`) as order_total_sum, orders.order_id as order_id, orders.created_at as created_at, orders.updated_at as updated_at'))
+            $ordersQuery = Order::select(DB::raw('*, SUM(`order_products`.`total`) as order_total_sum, orders.order_id as order_id, orders.created_at as created_at, orders.updated_at as updated_at, users.first_name as managerFirstName, users.last_name as managerLastName, users.email as managerEmail, users.phone as managerPhone, orders.first_name as first_name, orders.last_name as last_name, orders.phone as phone, orders.email as email, orders.created_at as created_at, orders.updated_at as updated_at'))
                 ->leftJoin('promocodes', 'orders.promocode_id', '=', 'promocodes.promocodes_id')
-                ->leftJoin('order_products', 'order_products.order_id', '=', 'orders.order_id');
+                ->leftJoin('order_products', 'order_products.order_id', '=', 'orders.order_id')
+                ->leftJoin('users', 'orders.manager_id', 'users.id');
 
             if ($orderId) {
                 $ordersQuery->where('orders.order_id', 'LIKE', "%{$orderId}%");
             }
             if ($status) {
                 $ordersQuery->where('orders.status_id', '=', $status);
+            }
+            if ($managerId) {
+                $ordersQuery->where('orders.manager_id', '=', $managerId);
             }
             if ($createdAt) {
                 $ordersQuery->whereDate('orders.created_at', '=', Carbon::createFromFormat('Y-m-d', $createdAt)->toDateString());
@@ -67,7 +72,7 @@ class OrderController extends Controller
 
     public function getByEmail(Request $request)
     {
-//        try {
+        try {
             $countPerPage = $request->input('count') ?: 20;
             $email = $request->input('email');
 
@@ -83,20 +88,22 @@ class OrderController extends Controller
                 ->paginate($countPerPage);
 
             return response()->json($orders, 200);
-//        } catch (\Exception $exception) {
-//            return $this->showMessage('Ошибка при загрузки заказов!', 400);
-//        }
+        } catch (\Exception $exception) {
+            return $this->showMessage('Ошибка при загрузки заказов!', 400);
+        }
     }
 
     public function show(Request $request, $id)
     {
         try {
-            $order = Order::select(DB::raw('*, SUM(`order_products`.`total`) as order_total_sum'))
+            $order = Order::select(DB::raw('*, SUM(`order_products`.`total`) as order_total_sum, orders.order_id as order_id, orders.created_at as created_at, orders.updated_at as updated_at, users.first_name as managerFirstName, users.last_name as managerLastName, users.email as managerEmail, users.phone as managerPhone, orders.first_name as first_name, orders.last_name as last_name, orders.phone as phone, orders.email as email, orders.created_at as created_at, orders.updated_at as updated_at'))
                 ->leftJoin('promocodes', 'orders.promocode_id', '=', 'promocodes.promocodes_id')
                 ->leftJoin('order_products', 'order_products.order_id', '=', 'orders.order_id')
+                ->leftJoin('users', 'orders.manager_id', 'users.id')
                 ->where(['orders.order_id' => $id])
                 ->groupBy('orders.order_id')
-                ->first();
+                ->first()
+                ->makeHidden(['password', 'real_password']);
 
             $findOrder = Order::where(['order_id' => $id])->first();
             if ($findOrder->viewed == 0) {
@@ -111,9 +118,11 @@ class OrderController extends Controller
                 ->leftJoin('color_size_product', 'order_products.product_option_id', '=', 'color_size_product.color_size_product_id')
                 ->where('order_products.order_id', $id)
                 ->get();
-            $orderHistory = DB::table('order_history')
+            $orderHistory = OrderHistory::select(DB::raw('*, order_history.created_at as created_at, order_history.updated_at as updated_at'))
+                ->leftJoin('users', 'order_history.manager_id', 'users.id')
                 ->where('order_history.order_id', $id)
-                ->get();
+                ->get()
+                ->makeHidden(['password', 'real_password']);
 
             $order['products'] = $orderProducts;
             $order['history'] = $orderHistory;
@@ -255,11 +264,13 @@ class OrderController extends Controller
                 'notify_customer' => $request->input('notify'),
                 'history_comment' => $request->input('comment'),
                 'history_status' => $request->input('shippingCode'),
+                'manager_id' => $request->user()->id,
             ]);
 
             $order = Order::find($request->input('id'));
             if ($order) {
                 $order->status_id = $request->input('shippingCode');
+                $order->manager_id = $order->manager_id ?: $request->user()->id;
                 $order->save();
             }
 
