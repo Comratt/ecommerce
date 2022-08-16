@@ -433,7 +433,7 @@ class ProductController extends Controller
                         $imgSize->save(public_path("uploads/images/$filenameStoreSize"));
                         $productSizePhoto = $filenameStoreSize;
                     } else {
-                        $productSizePhoto = $request->tableSize;
+                        $productSizePhoto = $product->table_size;
                     }
                     $product->image = $productPhoto;
                     $product->table_size = $productSizePhoto;

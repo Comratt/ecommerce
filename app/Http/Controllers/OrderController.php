@@ -144,7 +144,6 @@ class OrderController extends Controller
         $request->validate([
             'firstName' => 'required|string',
             'lastName' => 'required|string',
-            'email' => 'email',
             'phone' => 'required',
             'shippingCity' => 'required|string',
             'shippingAddress' => 'required|string',
@@ -178,7 +177,7 @@ class OrderController extends Controller
                 'status_id' => 1,
                 'first_name' => $request->firstName,
                 'last_name' => $request->lastName,
-                'email' => $request->email,
+                'email' => $request->email ?: null,
                 'phone' => $request->phone,
                 'shipping_city' => $request->shippingCity,
                 'shipping_area' => $request->areaName,
@@ -234,13 +233,13 @@ class OrderController extends Controller
                 foreach ($request->products as $product) {
                     try {
                         fopen("https://api.telegram.org/bot{$token}/sendPhoto?chat_id={$chat_id}&photo={$product['image']}", "r");
-                        $botTextOrder .= '%0A<b>Замовник:</b>%0A';
-                        $botTextOrder .= '<i>'. $request->firstName . ' ' . $request->lastName .': </i><a herf="tel:' . $request->phone . '">' . $request->phone . '</a>%0A';
-                        $botTextOrder .= '%0A<a href="http://paparot.com/admin/order/' . "{$order->order_id}" . '">Посилання на замовлення</a>';
-                        fopen("https://api.telegram.org/bot{$token}/sendMessage?chat_id={$chat_id}&parse_mode=html&text={$botTextOrder}", "r");
                     } catch (\Exception $telegramException) {
                     }
                 }
+                $botTextOrder .= '%0A<b>Замовник:</b>%0A';
+                $botTextOrder .= '<i>'. $request->firstName . ' ' . $request->lastName .': </i><a herf="tel:' . $request->phone . '">' . $request->phone . '</a>%0A';
+                $botTextOrder .= '%0A<a href="http://paparot.com/admin/order/' . "{$order->order_id}" . '">Посилання на замовлення</a>';
+                fopen("https://api.telegram.org/bot{$token}/sendMessage?chat_id={$chat_id}&parse_mode=html&text={$botTextOrder}", "r");
             }
         } catch (\Exception $exception) {
             DB::rollback();

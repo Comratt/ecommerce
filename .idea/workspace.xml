@@ -3,14 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" id="432c13d1-a4dd-48ae-bd9a-fcde218c8af0" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/AuthController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/AuthController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/BannerController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/BannerController.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/Http/Controllers/OrderController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/OrderController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Order.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Order.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/OrderHistory.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/OrderHistory.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/ProductController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/ProductController.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/Product.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Product.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/database/migrations/2020_10_21_171837_create_orders_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2020_10_21_171837_create_orders_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/migrations/2022_03_31_193906_add_order_history_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2022_03_31_193906_add_order_history_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/routes/api.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -471,7 +468,11 @@
       <workItem from="1660398285138" duration="1327000" />
       <workItem from="1660410593229" duration="1204000" />
       <workItem from="1660413351828" duration="1790000" />
-      <workItem from="1660415160700" duration="269000" />
+      <workItem from="1660415160700" duration="868000" />
+      <workItem from="1660491456364" duration="1350000" />
+      <workItem from="1660575046256" duration="702000" />
+      <workItem from="1660581978263" duration="1487000" />
+      <workItem from="1660584113127" duration="2062000" />
     </task>
     <servers />
   </component>

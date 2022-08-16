@@ -136,14 +136,6 @@ class Product extends Model
                 ->leftJoin('categories', 'categories.category_id', '=', 'product_categories.product_id')
                 ->leftJoin('category_descriptions', 'category_descriptions.category_id', '=', 'product_categories.category_id')
                 ->get();
-            $options = DB::table('product_options')
-                ->where('product_options.product_id', $product->product_id)
-                ->leftJoin('options', 'product_options.option_id', 'options.option_id')
-                ->leftJoin('option_values', 'product_options.option_value_id', 'option_values.option_value_id')
-                ->get();
-            $images = DB::table('product_images')
-                ->where('product_images.product_id', $product->product_id)
-                ->get();
             $colors = DB::table('color_size_product')
                 ->select(DB::raw('*, color_size_product.quantity as quantity'))
                 ->where('color_size_product.product_id', $product->product_id)
@@ -156,17 +148,12 @@ class Product extends Model
                 ->leftJoin('product_options', 'color_size_product.size_id', '=', 'product_options.product_option_id')
                 ->leftJoin('option_values', 'option_values.option_value_id', '=', 'product_options.option_value_id')
                 ->get();
-            $related = DB::table('products_related')
-                ->where('products_related.product_id', $product->product_id)
-                ->leftJoin('products', 'products.product_id', '=', 'products_related.related_product_id')
-                ->get();
+
+
             $discounts = DB::table('discounts')
                 ->where('discounts.product_id', $product->product_id)
                 ->get();
             $product['categories'] = $categories;
-            $product['options'] = $options;
-            $product['images'] = $images;
-            $product['related'] = $related;
             $product['discounts'] = $discounts;
             $product['colors'] = $colors;
             $product['sizes'] = $sizes;
@@ -189,6 +176,7 @@ class Product extends Model
             ->first();
 
         $categories = DB::table('product_categories')
+            ->select(DB::raw('*, categories.category_id as category_id'))
             ->where('product_categories.product_id', $productItem->product_id)
             ->leftJoin('categories', 'categories.category_id', '=', 'product_categories.category_id')
             ->leftJoin('category_descriptions', 'category_descriptions.category_id', '=', 'product_categories.category_id')

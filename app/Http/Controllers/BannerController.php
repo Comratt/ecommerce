@@ -49,7 +49,7 @@ class BannerController extends Controller
             'title' => 'required|string',
             'description' => 'required|string',
             'link' => 'required|string',
-            'image' => 'mimes:jpeg,jpg,png,gif|required',
+            'image' => 'required',
         ]);
         try {
             $bannerPhoto = 'no-photo.jpg';
@@ -116,14 +116,14 @@ class BannerController extends Controller
      */
     public function update(Request $request, $id)
     {
-//        $request->validate([
-//            'title' => 'required|string',
-//            'description' => 'required|string',
-//            'link' => 'required|string',
-//            'image' => 'mimes:jpeg,jpg,png,gif|required',
-//        ]);
+        $request->validate([
+            'title' => 'required|string',
+            'description' => 'required|string',
+            'link' => 'required|string',
+            'image' => 'required',
+        ]);
 
-//        try {
+        try {
             $banner = Banner::find($id);
 
             if ($banner) {
@@ -161,9 +161,9 @@ class BannerController extends Controller
             }
 
             return $this->showMessage('Такого баннера не существует!', 404);
-//        } catch (\Exception $exception) {
-//            return $this->showMessage('Ошибка при редактирования баннера!', 400);
-//        }
+        } catch (\Exception $exception) {
+            return $this->showMessage('Ошибка при редактирования баннера!', 400);
+        }
     }
 
     /**

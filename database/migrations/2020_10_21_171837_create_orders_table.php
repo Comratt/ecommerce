@@ -18,6 +18,7 @@ class CreateOrdersTable extends Migration
             $table->unsignedInteger('status_id');
             $table->string('first_name', 64);
             $table->string('last_name', 64);
+            $table->string('email', 100)->nullable();
             $table->string('phone', 32);
             $table->string('shipping_country', 32);
             $table->string('shipping_city', 32);
