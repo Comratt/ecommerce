@@ -54,7 +54,6 @@ class CategoryController extends Controller
             'category_name' => 'required|string',
             'parent_id' => 'string',
 //            'image' => 'mimes:jpeg,jpg,png,gif',
-            'sort_order' => 'string',
         ]);
         try {
             $categoryPhoto = 'no-photo.jpg';
@@ -134,7 +133,6 @@ class CategoryController extends Controller
             'category_name' => 'required|string',
             'parent_id' => 'string|nullable',
 //            'image' => 'nullable|mimes:jpeg,jpg,png,gif',
-            'sort_order' => 'string|nullable',
         ]);
         try {
             $category = Category::find($id);
@@ -201,6 +199,10 @@ class CategoryController extends Controller
             $categoryDescription = CategoryDescription::where('category_id', '=', $id)->first();
             if ($category && $categoryDescription) {
                 $deletedCategory = $categoryDescription->delete();
+                $deletedCategory = $category->delete();
+
+                return response()->json($deletedCategory);
+            } elseif ($category && !$categoryDescription) {
                 $deletedCategory = $category->delete();
 
                 return response()->json($deletedCategory);
