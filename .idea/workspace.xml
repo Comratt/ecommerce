@@ -3,7 +3,16 @@
   <component name="ChangeListManager">
     <list default="true" id="432c13d1-a4dd-48ae-bd9a-fcde218c8af0" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/CategoryController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/CategoryController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/OrderController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/OrderController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/migrations/2020_10_21_164642_create_products_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2020_10_21_164642_create_products_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/migrations/2020_10_21_170218_create_option_values_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2020_10_21_170218_create_option_values_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/migrations/2020_10_21_171837_create_orders_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2020_10_21_171837_create_orders_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/migrations/2020_10_21_173742_create_order_products_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2020_10_21_173742_create_order_products_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/migrations/2021_11_08_214225_create_color_size_product_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2020_10_21_170957_create_color_size_product_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/migrations/2022_03_31_193906_add_order_history_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2022_03_31_193906_add_order_history_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/migrations/2022_05_17_123606_add_returns_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2022_05_17_123606_create_returns_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/migrations/2022_05_17_123817_add_return_products_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2022_05_17_123817_create_return_products_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/migrations/2022_05_17_296100_add_promocodes_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2022_05_17_296100_create_promocodes_table.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -470,10 +479,27 @@
       <workItem from="1660581978263" duration="1487000" />
       <workItem from="1660584113127" duration="2062000" />
       <workItem from="1660647700126" duration="1013000" />
+      <workItem from="1660749306599" duration="1792000" />
+      <workItem from="1660751118848" duration="1438000" />
+      <workItem from="1661003376565" duration="1048000" />
+      <workItem from="1661005541072" duration="1700000" />
+      <workItem from="1661007683689" duration="1997000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
 </project>

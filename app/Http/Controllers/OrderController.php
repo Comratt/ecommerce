@@ -152,7 +152,7 @@ class OrderController extends Controller
 
         $success = false;
         DB::beginTransaction();
-        try {
+//        try {
             if ($request->products) {
                 foreach ($request->products as $product) {
                     $findRelated = DB::table('color_size_product')
@@ -171,8 +171,8 @@ class OrderController extends Controller
             } else {
                 return $this->showMessage('Товарів нема!', 400);
             }
-            $token = "5489467175:AAG_KRuxmEUR6d4Jo6auFh2RuxNRdYRjJIU";
-            $chat_id = "-694122577";
+            $token = "5405168681:AAG5xK0VezvMooWd-NgaR1Fj80vS1Pp2OdY";
+            $chat_id = "-630233593";
             $order = Order::create([
                 'status_id' => 1,
                 'first_name' => $request->firstName,
@@ -232,20 +232,20 @@ class OrderController extends Controller
                 DB::commit();
                 foreach ($request->products as $product) {
                     try {
-                        fopen("https://api.telegram.org/bot{$token}/sendPhoto?chat_id={$chat_id}&photo={$product['image']}", "r");
+                        fopen("https://api.telegram.org/bot{$token}/sendSticker?chat_id={$chat_id}&sticker={$product['image']}", "r");
                     } catch (\Exception $telegramException) {
                     }
                 }
                 $botTextOrder .= '%0A<b>Замовник:</b>%0A';
                 $botTextOrder .= '<i>'. $request->firstName . ' ' . $request->lastName .': </i><a herf="tel:' . $request->phone . '">' . $request->phone . '</a>%0A';
-                $botTextOrder .= '%0A<a href="http://paparot.com/admin/order/' . "{$order->order_id}" . '">Посилання на замовлення</a>';
+                $botTextOrder .= '%0A<a href="https://kostumchek.com/admin/order/' . "{$order->order_id}" . '">Посилання на замовлення</a>';
                 fopen("https://api.telegram.org/bot{$token}/sendMessage?chat_id={$chat_id}&parse_mode=html&text={$botTextOrder}", "r");
             }
-        } catch (\Exception $exception) {
-            DB::rollback();
-            $success = false;
-            return $this->showMessage('Ошибка при оформлении заказа!', 400);
-        }
+//        } catch (\Exception $exception) {
+//            DB::rollback();
+//            $success = false;
+//            return $this->showMessage('Ошибка при оформлении заказа!', 400);
+//        }
 
         return response()->json('OK');
     }

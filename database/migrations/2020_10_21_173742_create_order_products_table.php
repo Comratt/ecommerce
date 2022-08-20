@@ -17,7 +17,9 @@ class CreateOrderProductsTable extends Migration
             $table->increments('order_product_id');
             $table->unsignedInteger('order_id');
             $table->unsignedInteger('product_id');
-            $table->unsignedInteger('product_option_id');
+            $table->bigInteger('product_option_id')->nullable();
+            $table->string('size');
+            $table->string('color');
             $table->smallInteger('quantity')->default(0);
             $table->smallInteger('return_quantity')->default(0);
             $table->decimal('price')->default(0);
@@ -26,7 +28,6 @@ class CreateOrderProductsTable extends Migration
 
             $table->foreign('order_id')->references('order_id')->on('orders');
             $table->foreign('product_id')->references('product_id')->on('products');
-            $table->foreign('product_option_id')->references('color_size_product_id')->on('color_size_product');
         });
     }
 

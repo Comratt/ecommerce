@@ -20,6 +20,7 @@ class CreateOptionValuesTable extends Migration
             $table->smallInteger('sort_order')->default(0);
             $table->string('name_value', 64);
             $table->string('description', 64)->default('');
+            $table->string('color', 64)->nullable();
             $table->timestamps();
 
             $table->foreign('option_id')->references('option_id')->on('options');
