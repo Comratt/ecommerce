@@ -152,7 +152,7 @@ class OrderController extends Controller
 
         $success = false;
         DB::beginTransaction();
-//        try {
+        try {
             if ($request->products) {
                 foreach ($request->products as $product) {
                     $findRelated = DB::table('color_size_product')
@@ -171,8 +171,8 @@ class OrderController extends Controller
             } else {
                 return $this->showMessage('Товарів нема!', 400);
             }
-            $token = "5405168681:AAG5xK0VezvMooWd-NgaR1Fj80vS1Pp2OdY";
-            $chat_id = "-630233593";
+            $token = env('TELEGRAM_API_BOT_TOKEN', '');
+            $chat_id = env('TELEGRAM_API_BOT_CHAT_ID', '');
             $order = Order::create([
                 'status_id' => 1,
                 'first_name' => $request->firstName,
@@ -241,11 +241,11 @@ class OrderController extends Controller
                 $botTextOrder .= '%0A<a href="https://kostumchek.com/admin/order/' . "{$order->order_id}" . '">Посилання на замовлення</a>';
                 fopen("https://api.telegram.org/bot{$token}/sendMessage?chat_id={$chat_id}&parse_mode=html&text={$botTextOrder}", "r");
             }
-//        } catch (\Exception $exception) {
-//            DB::rollback();
-//            $success = false;
-//            return $this->showMessage('Ошибка при оформлении заказа!', 400);
-//        }
+        } catch (\Exception $exception) {
+            DB::rollback();
+            $success = false;
+            return $this->showMessage('Ошибка при оформлении заказа!', 400);
+        }
 
         return response()->json('OK');
     }
