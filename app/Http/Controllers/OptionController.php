@@ -89,7 +89,7 @@ class OptionController extends Controller
      */
     public function update(Request $request, $id)
     {
-//        try {
+        try {
             $option = Option::where('option_id', $id)->first();
             if ($option) {
                 $option->name = $request->name;
@@ -97,9 +97,13 @@ class OptionController extends Controller
 
                 if ($request->values) {
                     foreach (json_decode($request->input('values')) as $value) {
-                        $optionValue = OptionValue::where('option_value_id', $value->id)->first();
+                        $is_new = is_string($value->id);
 
-                        if ($optionValue) {
+                        if (!$is_new) {
+                            $optionValue = OptionValue::where('option_value_id', '=', "{$value->id}")->first();
+                            if (!$optionValue) {
+                                return $this->showMessage('Такої опції не існує!', 400);
+                            }
                             $optionValuePhoto = $value->image ?: 'no-value-photo.jpg';
                             $optionValue->name_value = $value->name;
                             $optionValue->color = $value->color;
@@ -147,9 +151,9 @@ class OptionController extends Controller
             }
 
             return $this->showMessage('Опция не найдена!', 404);
-//        } catch (\Exception $exception) {
-//            return $this->showMessage('Ошибка при обновлении опции!', 400);
-//        }
+        } catch (\Exception $exception) {
+            return $this->showMessage('Ошибка при обновлении опции!', 400);
+        }
     }
 
     /**
