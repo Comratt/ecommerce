@@ -238,7 +238,7 @@ class OrderController extends Controller
                 }
                 $botTextOrder .= '%0A<b>Замовник:</b>%0A';
                 $botTextOrder .= '<i>'. $request->firstName . ' ' . $request->lastName .': </i><a herf="tel:' . $request->phone . '">' . $request->phone . '</a>%0A';
-                $botTextOrder .= '%0A<a href="https://kostumchek.com/admin/order/' . "{$order->order_id}" . '">Посилання на замовлення</a>';
+                $botTextOrder .= '%0A<a href="https://lancaster.cv.ua/admin/order/' . "{$order->order_id}" . '">Посилання на замовлення</a>';
                 fopen("https://api.telegram.org/bot{$token}/sendMessage?chat_id={$chat_id}&parse_mode=html&text={$botTextOrder}", "r");
             }
         } catch (\Exception $exception) {
