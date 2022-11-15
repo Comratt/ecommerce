@@ -24,6 +24,9 @@ class CreateOrdersTable extends Migration
             $table->string('shipping_city', 32);
             $table->string('shipping_area', 32);
             $table->string('shipping_address', 128);
+            $table->string('shipping_city_ref', 128);
+            $table->string('shipping_address_ref', 128);
+            $table->string('novaposhta_ttn_ref', 128);
             $table->integer('promocode_id')->nullable();
             $table->decimal('promocode_discount')->default(0);
             $table->text('comment')->default('');

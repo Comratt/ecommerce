@@ -10,6 +10,7 @@ use Faker\Generator as Faker;
 use App\CategoryDescription;
 use App\ProductCategory;
 use App\ProductDescription;
+use App\ColorSizeProduct;
 use App\ProductImage;
 use App\ProductOption;
 use App\OptionValue;
@@ -130,8 +131,11 @@ class ProductController extends Controller
                 ->where('color_size_product.quantity', '>', 0)
                 ->groupBy('option_values.option_value_id')
                 ->get();
+            $filteredColors = $colors->filter(function ($color) {
+                return !empty($color->name);
+            })->values();
 
-            return response()->json($colors);
+            return response()->json($filteredColors);
         } catch (\Exception $exception) {
             return $this->showMessage('Ошибка при загрузки товаров!', 400);
         }
@@ -163,7 +167,11 @@ class ProductController extends Controller
                 ->groupBy('option_values.option_value_id')
                 ->get();
 
-            return response()->json($sizes);
+            $filteredSizes = $sizes->filter(function ($size) {
+                return !empty($size->name);
+            })->values();
+
+            return response()->json($filteredSizes);
         } catch (\Exception $exception) {
             return $this->showMessage('Ошибка при загрузки товаров!', 400);
         }
@@ -180,6 +188,198 @@ class ProductController extends Controller
         }
     }
 
+    public function addProductFromMA(Request $request)
+    {
+//        DB::transaction(function() use ($request) {
+//            try {
+                $product_exist = $request->product_exist;
+                $product_selected = json_decode($request->productSelected);
+                $product_color_size = json_decode($request->product_color_size);
+                if ($product_exist != 0) {
+                    $product = Product::where('model', '=', $product_selected->model)->first();
+                } else {
+                    $product = new Product;
+                    $product->name = $request->brand;
+                    $product->model = $request->model;
+                    $product->price = $request->price;
+                    if ($request->hasFile('photo')) {
+                        $filenameStore = Str::random(8) . time() . '.' . 'webp';
+                        $request->file('photo')->storeAs('images', $filenameStore);
+                        $img = Image::make(public_path("uploads/images/$filenameStore"))->encode('webp', 60);
+                        $img->orientate();
+                        $img->resize(1280, null, function($constraint){
+                            $constraint->upsize();
+                            $constraint->aspectRatio();
+                        });
+                        $img->save(public_path("uploads/images/$filenameStore"), 60);
+                        $productPhoto = $filenameStore;
+                    } else {
+                        $productPhoto = 'no-photo.jpg';
+                    }
+                    $product->image = $productPhoto;
+                    $product->save();
+                }
+                $modCount = 0;
+                foreach ($product_color_size as $color => $sizes) {
+                    foreach ($sizes as $size => $count) {
+                        $sizeValue = OptionValue::where('name_value', $size)->first();
+                        if (!$sizeValue) {
+                            $sizeValue = OptionValue::create(['name_value' => $size, 'option_id' => 1]);
+                        }
+                        $colorValue = OptionValue::where('name_value', $color)->first();
+                        if (!$colorValue) {
+                            $colorValue = OptionValue::create(['name_value' => $color, 'option_id' => 2]);
+                        }
+
+                        $product_option_size = ProductOption::updateOrCreate(
+                            [
+                                'product_id'      => $product->product_id,
+                                'option_id'       => $sizeValue->option_id,
+                                'option_value_id' => $sizeValue->option_value_id
+                            ],
+                            ['quantity'        => $count]
+                        );
+                        $product_option_color = ProductOption::updateOrCreate(
+                            [
+                                'product_id'      => $product->product_id,
+                                'option_id'       => $colorValue->option_id,
+                                'option_value_id' => $colorValue->option_value_id
+                            ],
+                            ['quantity'        => $count]
+                        );
+
+                        $color_size_product = ColorSizeProduct::where([
+                            'product_id' => $product->product_id,
+                            'color_id' => $product_option_color->product_option_id,
+                            'size_id' => $product_option_size->product_option_id
+                        ])->first();
+
+                        if ($color_size_product) {
+                            $modCount = $color_size_product->quantity + $count;
+                        } else {
+                            $modCount = $count;
+                        }
+
+                        ColorSizeProduct::updateOrCreate(
+                            [
+                                'product_id' => $product->product_id,
+                                'color_id' => $product_option_color->product_option_id,
+                                'size_id' => $product_option_size->product_option_id
+                            ],
+                            [
+                                'quantity' => $modCount,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now()
+                            ]
+                        );
+                    }
+                }
+
+                return response()->json('OK');
+//            } catch (\Exception $exception) {
+//                return $this->showMessage('Ошибка при добавлении товаров!', 400);
+//            }
+//        }, 1);
+    }
+
+    public function importFromCSV(Request $request)
+    {
+        $row = 1;
+        if (($handle = fopen(public_path('uploads/files/import.csv'), "r")) !== FALSE) {
+            while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                $row++;
+                $brand = $data[0];
+                $model = $data[1];
+                $color = $data[2];
+                $size = $data[3];
+                $photo = $data[4];
+                $price = $data[5];
+//                $description = $data[6];
+                $quantity = $data[7];
+
+                if ($brand != 'brand' && $model != 'model' && $size != 'size' && $color != 'color') {
+                    $product = Product::where([
+//                        ['name', '=', $brand],
+                        ['model', '=', $model],
+//                        ['price', '=', $price],
+//                        ['image', '=', $photo],
+                    ])->first();
+                    if (!$product) {
+                        $product = new Product;
+                        $product->name = $brand;
+                        $product->model = $model;
+                        $product->price = $price;
+                        $product->image = $photo;
+                        $product->save();
+                    }
+
+                    $sizeValue = OptionValue::where('name_value', $size)->first();
+                    if (!$sizeValue) {
+                        $sizeValue = OptionValue::create(['name_value' => $size, 'option_id' => 1]);
+                    }
+                    $colorValue = OptionValue::where('name_value', $color)->first();
+                    if (!$colorValue) {
+                        $colorValue = OptionValue::create(['name_value' => $color, 'option_id' => 2]);
+                    }
+
+                    $product_option_size = ProductOption::create([
+                        'product_id'      => $product->product_id,
+                        'option_id'       => $sizeValue->option_id,
+                        'option_value_id' => $sizeValue->option_value_id,
+                        'quantity'        => $quantity,
+                    ]);
+                    $product_option_color = ProductOption::create([
+                        'product_id'      => $product->product_id,
+                        'option_id'       => $colorValue->option_id,
+                        'option_value_id' => $colorValue->option_value_id,
+                        'quantity'        => $quantity,
+                    ]);
+
+                    DB::table('color_size_product')->insert([
+                        'product_id' => $product->product_id,
+                        'color_id' => $product_option_color->product_option_id,
+                        'size_id' => $product_option_size->product_option_id,
+                        'quantity' => $quantity,
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now(),
+                    ]);
+                }
+            }
+            fclose($handle);
+        }
+
+        echo 'OK';
+    }
+
+    public function sellProduct(Request $request)
+    {
+        $products = $request->products;
+
+        foreach ($products as $product) {
+            $findedProduct = Product::where('model', '=', $product['model'])->first();
+            $size = OptionValue::where('name_value', '=', $product['size'])->first();
+            $color = OptionValue::where('name_value', '=', $product['color'])->first();
+//            $sizeOption = ProductOption::where([
+//                ['option_value_id', '=', $size->option_value_id],
+//                ['product_id', '=', $findedProduct->product_id],
+//            ])->first();
+//            $colorOption = ProductOption::where([
+//                ['option_value_id', '=', $color->option_value_id],
+//                ['product_id', '=', $findedProduct->product_id],
+//            ])->first();
+            $colorSizeOption = DB::table('color_size_product')
+                ->leftJoin('product_options as product_size_t', 'product_size_t.product_option_id', '=', 'color_size_product.size_id')
+                ->leftJoin('product_options as product_color_t', 'product_color_t.product_option_id', '=', 'color_size_product.color_id')
+                ->leftJoin('option_values as option_size_t', 'option_size_t.option_value_id', '=', 'product_size_t.option_value_id')
+                ->leftJoin('option_values as option_color_t', 'option_color_t.option_value_id', '=', 'product_color_t.option_value_id')
+                ->where('color_size_product.product_id', $findedProduct->product_id)
+                ->where('option_size_t.option_value_id', $size->option_value_id)
+                ->where('option_color_t.option_value_id', $color->option_value_id)
+                ->decrement('color_size_product.quantity');
+        }
+
+        return response()->json('OK');
+    }
     /**
      * Store a newly created resource in storage.
      *

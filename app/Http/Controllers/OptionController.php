@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\OptionValue;
 use Illuminate\Http\Request;
 use App\Option;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
 
@@ -178,5 +179,45 @@ class OptionController extends Controller
         } catch (\Exception $exception) {
             return $this->showMessage('Ошибка при удалении опции!', 400);
         }
+    }
+
+    public function addSizeFromMA(Request $request)
+    {
+        $request->validate([
+        'name' => 'required',
+        ]);
+
+        $sizeId = DB::table('option_values')->insertGetId([
+            'option_id' => 1,
+            'name_value' => $request->name
+        ]);
+
+        return response()->json($sizeId);
+    }
+
+    public function addColorFromMA(Request $request)
+    {
+        $request->validate([
+        'name' => 'required',
+        ]);
+
+        $colorId = DB::table('option_values')->insertGetId([
+            'option_id' => 2,
+            'name_value' => $request->name
+        ]);
+
+        return response()->json($colorId);
+    }
+
+    public function updateColorSizeFromMA(Request $request)
+    {
+        $request->validate([
+            'oldName' => 'required',
+            'name' => 'required',
+        ]);
+
+        $sizeId = DB::table('option_values')->where('name_value', '=', $request->oldName)->update([ 'name_value' => $request->name ]);
+
+        return response()->json($sizeId);
     }
 }

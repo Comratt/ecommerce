@@ -77,6 +77,7 @@ Route::group(['prefix' => 'admin'], function() {
         Route::get('/orders', 'OrderController@index');
         Route::get('/orders/{id}', 'OrderController@show');
         Route::post('/orders-history', 'OrderController@addHistory');
+        Route::post('/orders-ttn/{id}', 'OrderController@updateTTN');
         // RETURNS
         Route::post('/return/{id}', 'ReturnController@store');
         //CUSTOMERS
@@ -89,4 +90,11 @@ Route::group(['prefix' => 'admin'], function() {
         Route::post('/promocodes/{id}/edit', 'PromoController@update');
         Route::delete('/promocodes/{id}', 'PromoController@delete');
     });
+    // INTEGRATION
+    Route::post('/ma/color', 'OptionController@addColorFromMA');
+    Route::post('/ma/size', 'OptionController@addSizeFromMA');
+    Route::post('/ma/option/update', 'OptionController@updateColorSizeFromMA');
+    Route::post('/ma/product/add', 'ProductController@addProductFromMA');
+    Route::post('/ma/product/sell', 'ProductController@sellProduct');
+    Route::get('/ma/product/import', 'ProductController@importFromCSV');
 });
