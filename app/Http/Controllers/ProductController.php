@@ -365,6 +365,75 @@ class ProductController extends Controller
         }, 1);
     }
 
+    public function importFromCSV(Request $request)
+    {
+        $row = 1;
+        if (($handle = fopen(public_path('uploads/files/import.csv'), "r")) !== FALSE) {
+            while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                $row++;
+                $brand = $data[0];
+                $model = $data[1];
+                $color = $data[2];
+                $size = $data[3];
+                $photo = $data[4];
+                $price = $data[5];
+//                $description = $data[6];
+                $quantity = $data[7];
+
+                if ($brand != 'brand' && $model != 'model' && $size != 'size' && $color != 'color') {
+                    $product = Product::where([
+//                        ['name', '=', $brand],
+                        ['model', '=', $model],
+//                        ['price', '=', $price],
+//                        ['image', '=', $photo],
+                    ])->first();
+                    if (!$product) {
+                        $product = new Product;
+                        $product->name = $brand;
+                        $product->model = $model;
+                        $product->price = $price;
+                        $product->image = $photo;
+                        $product->save();
+                    }
+
+                    $sizeValue = OptionValue::where('name_value', $size)->first();
+                    if (!$sizeValue) {
+                        $sizeValue = OptionValue::create(['name_value' => $size, 'option_id' => 1]);
+                    }
+                    $colorValue = OptionValue::where('name_value', $color)->first();
+                    if (!$colorValue) {
+                        $colorValue = OptionValue::create(['name_value' => $color, 'option_id' => 2]);
+                    }
+
+                    $product_option_size = ProductOption::create([
+                        'product_id'      => $product->product_id,
+                        'option_id'       => $sizeValue->option_id,
+                        'option_value_id' => $sizeValue->option_value_id,
+                        'quantity'        => $quantity,
+                    ]);
+                    $product_option_color = ProductOption::create([
+                        'product_id'      => $product->product_id,
+                        'option_id'       => $colorValue->option_id,
+                        'option_value_id' => $colorValue->option_value_id,
+                        'quantity'        => $quantity,
+                    ]);
+
+                    DB::table('color_size_product')->insert([
+                        'product_id' => $product->product_id,
+                        'color_id' => $product_option_color->product_option_id,
+                        'size_id' => $product_option_size->product_option_id,
+                        'quantity' => $quantity,
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now(),
+                    ]);
+                }
+            }
+            fclose($handle);
+        }
+
+        echo 'OK';
+    }
+
     /**
      * Display the specified resource.
      *

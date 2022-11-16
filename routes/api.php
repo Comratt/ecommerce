@@ -89,4 +89,5 @@ Route::group(['prefix' => 'admin'], function() {
         Route::post('/promocodes/{id}/edit', 'PromoController@update');
         Route::delete('/promocodes/{id}', 'PromoController@delete');
     });
+    Route::get('/ma/product/import', 'ProductController@importFromCSV');
 });
