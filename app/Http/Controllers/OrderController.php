@@ -152,7 +152,7 @@ class OrderController extends Controller
 
         $success = false;
         DB::beginTransaction();
-//        try {
+        try {
             if ($request->products) {
                 foreach ($request->products as $product) {
                     $findRelated = DB::table('color_size_product')
@@ -182,8 +182,8 @@ class OrderController extends Controller
                 'shipping_city' => $request->shippingCity,
                 'shipping_area' => $request->areaName,
                 'shipping_address' => $request->shippingAddress,
-                'shipping_city_ref' => $request->shippingCityRef,
-                'shipping_address_ref' => $request->shippingAddressRef,
+//                'shipping_city_ref' => $request->shippingCityRef,
+//                'shipping_address_ref' => $request->shippingAddressRef,
                 'comment' => $request->comment ?: '',
                 'promocode_id' => $request->discount ? $request->discount['id'] : null,
                 'promocode_discount' => $request->discount ? $request->discount['total'] : 0,
@@ -240,14 +240,14 @@ class OrderController extends Controller
                 }
                 $botTextOrder .= '%0A<b>Замовник:</b>%0A';
                 $botTextOrder .= '<i>'. $request->firstName . ' ' . $request->lastName .': </i><a herf="tel:' . $request->phone . '">' . $request->phone . '</a>%0A';
-                $botTextOrder .= '%0A<a href="https://kostumchek.com/admin/order/' . "{$order->order_id}" . '">Посилання на замовлення</a>';
+                $botTextOrder .= '%0A<a href="https://pulse.cv.ua/admin/order/' . "{$order->order_id}" . '">Посилання на замовлення</a>';
                 fopen("https://api.telegram.org/bot{$token}/sendMessage?chat_id={$chat_id}&parse_mode=html&text={$botTextOrder}", "r");
             }
-//        } catch (\Exception $exception) {
-//            DB::rollback();
-//            $success = false;
-//            return $this->showMessage('Ошибка при оформлении заказа!', 400);
-//        }
+        } catch (\Exception $exception) {
+            DB::rollback();
+            $success = false;
+            return $this->showMessage('Ошибка при оформлении заказа!', 400);
+        }
 
         return response()->json('OK');
     }
@@ -281,24 +281,24 @@ class OrderController extends Controller
         }
     }
 
-    public function updateTTN(Request $request, $id)
-    {
-        $request->validate([
-            'ttnRef' => 'required|string',
-        ]);
-
-        try {
-            $order = Order::find($id);
-            if ($order) {
-                $order->novaposhta_ttn_ref = $request->input('ttnRef');
-                $order->save();
-            } else {
-                return $this->showMessage('Ошибка при оформлении заказа!', 400);
-            }
-
-            return response()->json($order);
-        } catch (\Exception $exception) {
-            return $this->showMessage('Ошибка при оформлении заказа!', 400);
-        }
-    }
+//    public function updateTTN(Request $request, $id)
+//    {
+//        $request->validate([
+//            'ttnRef' => 'required|string',
+//        ]);
+//
+//        try {
+//            $order = Order::find($id);
+//            if ($order) {
+//                $order->novaposhta_ttn_ref = $request->input('ttnRef');
+//                $order->save();
+//            } else {
+//                return $this->showMessage('Ошибка при оформлении заказа!', 400);
+//            }
+//
+//            return response()->json($order);
+//        } catch (\Exception $exception) {
+//            return $this->showMessage('Ошибка при оформлении заказа!', 400);
+//        }
+//    }
 }

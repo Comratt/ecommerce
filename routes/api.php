@@ -77,7 +77,7 @@ Route::group(['prefix' => 'admin'], function() {
         Route::get('/orders', 'OrderController@index');
         Route::get('/orders/{id}', 'OrderController@show');
         Route::post('/orders-history', 'OrderController@addHistory');
-        Route::post('/orders-ttn/{id}', 'OrderController@updateTTN');
+//        Route::post('/orders-ttn/{id}', 'OrderController@updateTTN');
         // RETURNS
         Route::post('/return/{id}', 'ReturnController@store');
         //CUSTOMERS
