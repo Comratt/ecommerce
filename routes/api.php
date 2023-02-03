@@ -97,4 +97,6 @@ Route::group(['prefix' => 'admin'], function() {
     Route::post('/ma/product/add', 'ProductController@addProductFromMA');
     Route::post('/ma/product/sell', 'ProductController@sellProduct');
     Route::get('/ma/product/import', 'ProductController@importFromCSV');
+    // XML FEED
+    Route::get('/feed/get', 'ProductController@generateXMLFeed');
 });

@@ -1098,4 +1098,98 @@ class ProductController extends Controller
 //            return $this->showMessage('Ошибка при генерации товаров!', 400);
 //        }
     }
+
+    private function generateSingleAttr($xw, $name = '', $text = '', $attrs = []) {
+        xmlwriter_start_element($xw, $name);
+        xmlwriter_text($xw, $text);
+        foreach ($attrs as $attr) {
+            xmlwriter_start_attribute($xw, $attr[0]);
+            xmlwriter_text($xw, $attr[1]);
+            xmlwriter_end_attribute($xw);
+        }
+        xmlwriter_end_element($xw); // end title
+    }
+    private function generateFeedItem($xw, $id, $title, $desc, $link, $img_link, $brand, $availability, $price, $product_type, $color, $size) {
+        xmlwriter_start_element($xw, 'item');
+        $this->generateSingleAttr($xw, 'g:id', $id);
+        $this->generateSingleAttr($xw, 'g:title', $title);
+        $this->generateSingleAttr($xw, 'g:description', $desc);
+        $this->generateSingleAttr($xw, 'g:link', $link);
+        $this->generateSingleAttr($xw, 'g:img_link', $img_link);
+        $this->generateSingleAttr($xw, 'g:brand', $brand);
+        $this->generateSingleAttr($xw, 'g:availability', $availability);
+        $this->generateSingleAttr($xw, 'g:price', $price);
+        $this->generateSingleAttr($xw, 'g:product_type', $product_type);
+        $this->generateSingleAttr($xw, 'g:color', $color);
+        $this->generateSingleAttr($xw, 'g:size', $size);
+        xmlwriter_end_element($xw);
+    }
+    private function getAllProductsForFeed() {
+        return ColorSizeProduct::select(DB::raw('*, color_size_product.product_id as id, products.name as title, product_descriptions.description as description, products.image as img_link, products.model as brand, color_size_product.quantity as quantity, products.price as price, discounts.discount_price as discount, categories.category_name as product_type, option_size_t.name_value as size, option_color_t.name_value as color'))
+            ->leftJoin('products', 'color_size_product.product_id', '=', 'products.product_id')
+            ->leftJoin('discounts', 'color_size_product.product_id', '=', 'discounts.product_id')
+            ->leftJoin('product_categories', 'color_size_product.product_id', '=', 'product_categories.product_id')
+            ->leftJoin('categories', 'product_categories.category_id', '=', 'categories.category_id')
+            ->leftJoin('product_descriptions', 'color_size_product.product_id', '=', 'product_descriptions.product_id')
+            ->leftJoin('product_options as product_size_t', 'product_size_t.product_option_id', '=', 'color_size_product.size_id')
+            ->leftJoin('product_options as product_color_t', 'product_color_t.product_option_id', '=', 'color_size_product.color_id')
+            ->leftJoin('option_values as option_size_t', 'option_size_t.option_value_id', '=', 'product_size_t.option_value_id')
+            ->leftJoin('option_values as option_color_t', 'option_color_t.option_value_id', '=', 'product_color_t.option_value_id')
+            ->where('products.status', '=', '1')
+            ->groupBy('color_size_product.color_size_product_id')
+            ->get();
+    }
+
+    public function generateXMLFeed(Request $request) {
+        $xw = xmlwriter_open_memory();
+        xmlwriter_set_indent($xw, 1);
+        $res = xmlwriter_set_indent_string($xw, ' ');
+
+        xmlwriter_start_document($xw, '1.0', 'UTF-8');
+
+        // A first element RSS with attrs
+        xmlwriter_start_element($xw, 'rss');
+        xmlwriter_start_attribute($xw, 'xmlns:g');
+        xmlwriter_text($xw, 'http://base.google.com/ns/1.0');
+        xmlwriter_end_attribute($xw);
+
+        xmlwriter_start_attribute($xw, 'version');
+        xmlwriter_text($xw, '2.0');
+        xmlwriter_end_attribute($xw);
+        // Child element channel
+        xmlwriter_start_element($xw, 'channel');
+        // Title
+        $this->generateSingleAttr($xw, 'title', 'Fenix voentorg');
+        // Link
+        $this->generateSingleAttr($xw, 'link', 'https://phoenix-voentorg.store');
+        // Description
+        $this->generateSingleAttr($xw, 'description', 'An example item from the feed');
+        // GENERATE ITEMS
+        $products = $this->getAllProductsForFeed();
+        foreach ($products as $product) {
+            $this->generateFeedItem(
+                $xw,
+                $product->id,
+                $product->title,
+                $product->description,
+                "https://phoenix-voentorg.store/products/{$product->id}",
+                "https://back.phoenix-voentorg.store/uploads/images/{$product->img_link}",
+                $product->brand,
+                ((int) $product->quantity > 0) ? 'in_stock' : 'out_of_stock',
+                ((int) $product->discount > 0) ? $product->price - $product->discount : $product->price . ' UAH',
+                $product->product_type,
+                $product->color,
+                $product->size
+            );
+        }
+        xmlwriter_end_element($xw); // end channel
+        // End RSS
+        xmlwriter_end_element($xw);
+        // End XML
+        xmlwriter_end_document($xw);
+
+        return response(xmlwriter_output_memory($xw))->header('Content-Type', 'text/xml')->header('Content-Disposition', 'attachment; filename="myfile.xml"');
+
+        echo xmlwriter_output_memory($xw);
+    }
 }

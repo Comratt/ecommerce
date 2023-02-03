@@ -152,7 +152,7 @@ class OrderController extends Controller
 
         $success = false;
         DB::beginTransaction();
-//        try {
+        try {
             if ($request->products) {
                 foreach ($request->products as $product) {
                     $findRelated = DB::table('color_size_product')
@@ -243,13 +243,13 @@ class OrderController extends Controller
                 $botTextOrder .= '%0A<a href="https://kostumchek.com/admin/order/' . "{$order->order_id}" . '">Посилання на замовлення</a>';
                 fopen("https://api.telegram.org/bot{$token}/sendMessage?chat_id={$chat_id}&parse_mode=html&text={$botTextOrder}", "r");
             }
-//        } catch (\Exception $exception) {
-//            DB::rollback();
-//            $success = false;
-//            return $this->showMessage('Ошибка при оформлении заказа!', 400);
-//        }
+        } catch (\Exception $exception) {
+            DB::rollback();
+            $success = false;
+            return $this->showMessage('Ошибка при оформлении заказа!', 400);
+        }
 
-        return response()->json('OK');
+        return response()->json($order);
     }
 
     public function addHistory(Request $request)
