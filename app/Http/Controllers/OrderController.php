@@ -183,6 +183,7 @@ class OrderController extends Controller
                 'shipping_area' => $request->areaName,
                 'shipping_address' => $request->shippingAddress,
                 'comment' => $request->comment ?: '',
+                'payment_status' => $request->paymentStatus ?: 1,
                 'promocode_id' => $request->discount ? $request->discount['id'] : null,
                 'promocode_discount' => $request->discount ? $request->discount['total'] : 0,
             ]);
@@ -240,14 +241,30 @@ class OrderController extends Controller
                 $botTextOrder .= '<i>'. $request->firstName . ' ' . $request->lastName .': </i><a herf="tel:' . $request->phone . '">' . $request->phone . '</a>%0A';
                 $botTextOrder .= '%0A<a href="https://kostumchek.com/admin/order/' . "{$order->order_id}" . '">Посилання на замовлення</a>';
                 fopen("https://api.telegram.org/bot{$token}/sendMessage?chat_id={$chat_id}&parse_mode=html&text={$botTextOrder}", "r");
+                return response()->json($order);
             }
         } catch (\Exception $exception) {
             DB::rollback();
             $success = false;
             return $this->showMessage('Ошибка при оформлении заказа!', 400);
         }
+    }
 
-        return response()->json('OK');
+    public function changeOrderStatus(Request $request)
+    {
+        try {
+            $order = Order::find($request->order_id);
+            if ($order) {
+                $order->payment_status = $request->status;
+                $order->save();
+
+                return response()->json($order);
+            } else {
+                return $this->showMessage('Ошибка при оформлении заказа!', 400);
+            }
+        } catch (\Exception $exception) {
+            return $this->showMessage('Ошибка при оформлении заказа!', 400);
+        }
     }
 
     public function addHistory(Request $request)

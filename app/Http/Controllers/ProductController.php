@@ -13,6 +13,7 @@ use App\ProductDescription;
 use App\ProductImage;
 use App\ProductOption;
 use App\OptionValue;
+use App\ColorSizeProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -966,5 +967,92 @@ class ProductController extends Controller
 //        } catch (\Exception $exception) {
 //            return $this->showMessage('Ошибка при генерации товаров!', 400);
 //        }
+    }
+
+    private function generateSingleAttr($xw, $name = '', $text = '', $attrs = []) {
+        xmlwriter_start_element($xw, $name);
+        xmlwriter_text($xw, $text);
+        foreach ($attrs as $attr) {
+            xmlwriter_start_attribute($xw, $attr[0]);
+            xmlwriter_text($xw, $attr[1]);
+            xmlwriter_end_attribute($xw);
+        }
+        xmlwriter_end_element($xw); // end title
+    }
+    private function generateFeedItem($xw, $id, $title, $desc, $link, $img_link, $brand, $availability, $price, $product_type) {
+        xmlwriter_start_element($xw, 'item');
+        $this->generateSingleAttr($xw, 'g:id', $id);
+        $this->generateSingleAttr($xw, 'title', $title);
+        $this->generateSingleAttr($xw, 'description', $desc);
+        $this->generateSingleAttr($xw, 'link', $link);
+        $this->generateSingleAttr($xw, 'g:image_link', $img_link);
+        $this->generateSingleAttr($xw, 'g:brand', $brand);
+        $this->generateSingleAttr($xw, 'g:availability', $availability);
+        $this->generateSingleAttr($xw, 'g:update_type', 'merge');
+        $this->generateSingleAttr($xw, 'g:price', $price);
+        $this->generateSingleAttr($xw, 'g:product_type', $product_type);
+        xmlwriter_end_element($xw);
+    }
+    private function getAllProductsForFeed() {
+        return ColorSizeProduct::select(DB::raw('*, color_size_product.product_id as id, products.name as title, product_descriptions.description as description, products.image as img_link, products.model as brand, color_size_product.quantity as quantity, products.price as price, discounts.discount_price as discount, categories.category_name as product_type'))
+            ->leftJoin('products', 'color_size_product.product_id', '=', 'products.product_id')
+            ->leftJoin('discounts', 'color_size_product.product_id', '=', 'discounts.product_id')
+            ->leftJoin('product_categories', 'color_size_product.product_id', '=', 'product_categories.product_id')
+            ->leftJoin('categories', 'product_categories.category_id', '=', 'categories.category_id')
+            ->leftJoin('product_descriptions', 'color_size_product.product_id', '=', 'product_descriptions.product_id')
+            ->where('products.status', '=', '1')
+            ->groupBy('color_size_product.product_id')
+            ->get();
+    }
+
+    public function generateXMLFeed(Request $request) {
+        $xw = xmlwriter_open_memory();
+        xmlwriter_set_indent($xw, 1);
+        $res = xmlwriter_set_indent_string($xw, ' ');
+
+        xmlwriter_start_document($xw, '1.0');
+
+        // A first element RSS with attrs
+        xmlwriter_start_element($xw, 'rss');
+        xmlwriter_start_attribute($xw, 'xmlns:g');
+        xmlwriter_text($xw, 'http://base.google.com/ns/1.0');
+        xmlwriter_end_attribute($xw);
+
+        xmlwriter_start_attribute($xw, 'version');
+        xmlwriter_text($xw, '2.0');
+        xmlwriter_end_attribute($xw);
+        // Child element channel
+        xmlwriter_start_element($xw, 'channel');
+        // Title
+        $this->generateSingleAttr($xw, 'title', 'Kostumchek');
+        // Link
+        $this->generateSingleAttr($xw, 'link', 'https://kostumchek.com');
+        // Description
+        $this->generateSingleAttr($xw, 'description', 'Feed for Kostumchek');
+        // GENERATE ITEMS
+        $products = $this->getAllProductsForFeed();
+        foreach ($products as $product) {
+            $this->generateFeedItem(
+                $xw,
+                $product->id,
+                $product->title,
+                $product->description,
+                "https://kostumchek.com/products/{$product->id}",
+                "https://back.kostumchek.com/uploads/images/{$product->img_link}",
+                $product->brand,
+                ((int) $product->quantity > 0) ? 'in_stock' : 'out_of_stock',
+                (((int) $product->discount > 0) ? $product->price - $product->discount : $product->price) . ' UAH',
+                $product->product_type
+            );
+        }
+        xmlwriter_end_element($xw); // end channel
+        // End RSS
+        xmlwriter_end_element($xw);
+        // End XML
+        xmlwriter_end_document($xw);
+
+        return response(xmlwriter_output_memory($xw))->header('Content-Type', 'text/xml')->header('Content-Disposition', 'attachment; filename="myfile.xml"');
+
+        echo xmlwriter_output_memory($xw);
     }
 }

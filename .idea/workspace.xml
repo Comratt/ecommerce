@@ -3,7 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="432c13d1-a4dd-48ae-bd9a-fcde218c8af0" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/OrderController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/OrderController.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/Http/Controllers/ProductController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/ProductController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Order.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Order.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/migrations/2020_10_21_171837_create_orders_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2020_10_21_171837_create_orders_table.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/routes/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/routes/api.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -488,6 +491,19 @@
       <workItem from="1661258781714" duration="835000" />
       <workItem from="1661263812950" duration="1797000" />
       <workItem from="1668617268532" duration="641000" />
+      <workItem from="1675452792762" duration="625000" />
+      <workItem from="1675517149312" duration="2148000" />
+      <workItem from="1675520353108" duration="1190000" />
+      <workItem from="1676656732058" duration="19000" />
+      <workItem from="1678817979770" duration="343000" />
+      <workItem from="1678818337378" duration="788000" />
+      <workItem from="1678871136260" duration="607000" />
+      <workItem from="1678874262096" duration="262000" />
+      <workItem from="1684167154150" duration="1136000" />
+      <workItem from="1684168432670" duration="1784000" />
+      <workItem from="1684170456205" duration="808000" />
+      <workItem from="1684606108974" duration="638000" />
+      <workItem from="1685295547603" duration="17000" />
     </task>
     <servers />
   </component>

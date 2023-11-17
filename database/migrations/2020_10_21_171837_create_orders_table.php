@@ -29,6 +29,8 @@ class CreateOrdersTable extends Migration
             $table->text('comment')->default('');
             $table->boolean('viewed')->default(0);
             $table->unsignedBigInteger('manager_id')->nullable();
+            // 1 - throw NovaPoshta, 2 - online pay success, 3 - online pay failure
+            $table->integer('payment_status')->default(1);
             $table->timestamps();
 
             $table->foreign('status_id')->references('order_status_id')->on('order_statuses');

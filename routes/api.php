@@ -42,6 +42,7 @@ Route::group(['prefix' => 'admin'], function() {
 
     // ORDERS
     Route::post('/orders', 'OrderController@store');
+    Route::post('/orders-status', 'OrderController@changeOrderStatus');
     Route::post('/get/orders/email', 'OrderController@getByEmail');
 
     //PROMOCODES
@@ -90,4 +91,6 @@ Route::group(['prefix' => 'admin'], function() {
         Route::delete('/promocodes/{id}', 'PromoController@delete');
     });
     Route::get('/ma/product/import', 'ProductController@importFromCSV');
+    // XML FEED
+    Route::get('/feed/get', 'ProductController@generateXMLFeed');
 });
