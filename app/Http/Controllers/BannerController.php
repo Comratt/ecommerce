@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Banner;
+use App\Traits\GenerateUniqueSlugBanner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
 
 class BannerController extends Controller
 {
+    use GenerateUniqueSlugBanner;
     /**
      * @param string $message
      * @param int $status
@@ -57,6 +59,7 @@ class BannerController extends Controller
             $newBanner->title = $request->title;
             $newBanner->link = $request->link;
             $newBanner->description = $request->description;
+            $newBanner->slug = $this->generateUniqueSlug($request->title);
             if ($request->sort_order) {
                 $newBanner->sort_order = $request->sort_order;
             }
@@ -132,6 +135,7 @@ class BannerController extends Controller
                 $banner->link = $request->link;
                 $banner->sort_order = $request->sort_order;
                 $banner->description = $request->description;
+                $banner->slug = $this->generateUniqueSlug($request->title);
                 if ($request->hasFile('image')) {
                     $mime = $request->file('image')->getMimeType();
                     if(strstr($mime, "video/")){

@@ -169,9 +169,9 @@ class Product extends Model
         return self::select(DB::raw('product_id, model, name'))->get();
     }
 
-    public static function showProductById(int $id)
+    public static function showProductById(string $id)
     {
-        $productItem = self::select(DB::raw('*, products.product_id as product_id'))->where(['products.product_id' => $id])
+        $productItem = self::select(DB::raw('*, products.product_id as product_id'))->where(['products.slug' => $id])
             ->leftJoin('product_descriptions', 'products.product_id', '=', 'product_descriptions.product_id')
             ->first();
 

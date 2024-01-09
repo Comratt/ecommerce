@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Order;
 use App\Product;
+use App\Traits\GenerateUniqueSlug;
 use App\User;
 use Carbon\Carbon;
 use Faker\Generator as Faker;
@@ -20,6 +21,7 @@ use Intervention\Image\Facades\Image;
 
 class ProductController extends Controller
 {
+    use GenerateUniqueSlug;
     /**
      * @param string $message
      * @param int $status
@@ -195,6 +197,7 @@ class ProductController extends Controller
                     $reqProduct = json_decode($request->product);
                     $product->model = $reqProduct->model;
                     $product->name = $reqProduct->productName;
+                    $product->slug = $this->generateUniqueSlug($reqProduct->productName);
                     $product->price = $reqProduct->price;
                     $product->status = $reqProduct->status ?: 1;
                     $productPhoto = 'no-photo.jpg';
@@ -369,13 +372,13 @@ class ProductController extends Controller
      * Display the specified resource.
      *
      * @param Request $request
-     * @param int $id
+     * @param string $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function show(Request $request, $id)
     {
         try {
-            $productItem = Product::where(['product_id' => $id]);
+            $productItem = Product::where(['slug' => $id]);
             if ($productItem) {
                 $productItem->increment('viewed');
                 $product = Product::showProductById($id);
@@ -393,7 +396,7 @@ class ProductController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  string  $id
      * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request, $id)
@@ -407,6 +410,7 @@ class ProductController extends Controller
                     $product->name = $reqProduct->productName;
                     $product->price = $reqProduct->price;
                     $product->status = $reqProduct->status ?: 0;
+                    $product->slug = $this->generateUniqueSlug($reqProduct->productName);
                     $productPhoto = $product->image ?: 'no-photo.jpg';
                     if ($request->hasFile('mainImage')) {
                         $filenameStore = Str::random(8) . time() . '.' . 'webp';
