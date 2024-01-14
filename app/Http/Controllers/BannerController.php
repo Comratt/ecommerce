@@ -53,6 +53,7 @@ class BannerController extends Controller
         ]);
         try {
             $bannerPhoto = 'no-photo.jpg';
+            $bannerPhotoMobile = '';
             $newBanner = new Banner;
             $newBanner->title = $request->title;
             $newBanner->link = $request->link;
@@ -72,7 +73,7 @@ class BannerController extends Controller
                     // this code for image
                     $filenameStore = Str::random(8) . time() . '.' . 'webp';
                     $request->file('image')->storeAs('images', $filenameStore);
-                    $img = Image::make(public_path("uploads/images/$filenameStore"))->encode('webp', 60);
+                    $img = Image::make(public_path("uploads/images/$filenameStore"))->encode('webp', 90);
                     $img->orientate();
                     $img->resize(1920, null, function($constraint){
                         $constraint->upsize();
@@ -82,7 +83,30 @@ class BannerController extends Controller
                     $bannerPhoto = $filenameStore;
                 }
             }
+            if ($request->hasFile('image_mobile')) {
+                $mime = $request->file('image_mobile')->getMimeType();
+                if(strstr($mime, "video/")){
+                    // this code for video
+                    $extension = $request->file('image_mobile')->getClientOriginalExtension();
+                    $filenameStore = Str::random(8) . time() . '.' . $extension;
+                    $request->file('image_mobile')->storeAs('images', $filenameStore);
+                    $bannerPhotoMobile = $filenameStore;
+                }else if(strstr($mime, "image/")){
+                    // this code for image
+                    $filenameStore = Str::random(8) . time() . '.' . 'webp';
+                    $request->file('image_mobile')->storeAs('images', $filenameStore);
+                    $img = Image::make(public_path("uploads/images/$filenameStore"))->encode('webp', 90);
+                    $img->orientate();
+                    $img->resize(1920, null, function($constraint){
+                        $constraint->upsize();
+                        $constraint->aspectRatio();
+                    });
+                    $img->save(public_path("uploads/images/$filenameStore"), 60);
+                    $bannerPhotoMobile = $filenameStore;
+                }
+            }
             $newBanner->image = $bannerPhoto;
+            $newBanner->image_mobile = $bannerPhotoMobile;
             $newBanner->save();
 
             return response()->json($newBanner);
@@ -128,6 +152,7 @@ class BannerController extends Controller
 
             if ($banner) {
                 $bannerPhoto = $banner->image;
+                $bannerPhotoMobile = $banner->image_mobile;
                 $banner->title = $request->title;
                 $banner->link = $request->link;
                 $banner->sort_order = $request->sort_order;
@@ -154,7 +179,30 @@ class BannerController extends Controller
                         $bannerPhoto = $filenameStore;
                     }
                 }
+                if ($request->hasFile('image_mobile')) {
+                    $mime = $request->file('image_mobile')->getMimeType();
+                    if(strstr($mime, "video/")){
+                        // this code for video
+                        $extension = $request->file('image_mobile')->getClientOriginalExtension();
+                        $filenameStore = Str::random(8) . time() . '.' . $extension;
+                        $request->file('image_mobile')->storeAs('images', $filenameStore);
+                        $bannerPhotoMobile = $filenameStore;
+                    }else if(strstr($mime, "image/")){
+                        // this code for image
+                        $filenameStore = Str::random(8) . time() . '.' . 'webp';
+                        $request->file('image_mobile')->storeAs('images', $filenameStore);
+                        $img = Image::make(public_path("uploads/images/$filenameStore"))->encode('webp', 60);
+                        $img->orientate();
+                        $img->resize(1920, null, function($constraint){
+                            $constraint->upsize();
+                            $constraint->aspectRatio();
+                        });
+                        $img->save(public_path("uploads/images/$filenameStore"), 60);
+                        $bannerPhotoMobile = $filenameStore;
+                    }
+                }
                 $banner->image = $bannerPhoto;
+                $banner->image_mobile = $bannerPhotoMobile;
                 $banner->save();
 
                 return response()->json($banner);
