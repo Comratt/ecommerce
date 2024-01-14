@@ -232,6 +232,7 @@ class ProductController extends Controller
                     $newProductDescription = new ProductDescription;
                     $newProductDescription->product_id = $product->product_id;
                     $newProductDescription->description = $reqProduct->description;
+                    $newProductDescription->care = $reqProduct->care;
                     $newProductDescription->meta_title = $reqProduct->metaTitle;
                     $newProductDescription->meta_description = $reqProduct->metaDescription;
                     $newProductDescription->meta_keyword = $reqProduct->metaKeywords;
@@ -511,6 +512,7 @@ class ProductController extends Controller
                     $productDescription = ProductDescription::where(['product_id' => $id])->first();
                     if ($productDescription) {
                         $productDescription->description = $reqProduct->description;
+                        $productDescription->care = $reqProduct->care;
                         $productDescription->meta_title = $reqProduct->metaTitle;
                         $productDescription->meta_description = $reqProduct->metaDescription;
                         $productDescription->meta_keyword = $reqProduct->metaKeywords;
@@ -520,6 +522,7 @@ class ProductController extends Controller
                         $newProductDescription = new ProductDescription;
                         $newProductDescription->product_id = $id;
                         $newProductDescription->description = $reqProduct->description;
+                        $newProductDescription->care = $reqProduct->care;
                         $newProductDescription->meta_title = $reqProduct->metaTitle;
                         $newProductDescription->meta_description = $reqProduct->metaDescription;
                         $newProductDescription->meta_keyword = $reqProduct->metaKeywords;
