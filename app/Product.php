@@ -124,6 +124,8 @@ class Product extends Model
             } elseif ($sortBy == 'relevance') {
                 $productsQuery->orderBy('products.viewed', 'desc');
             }
+        } else {
+            $productsQuery->orderBy('products.created_at', 'desc');
         }
 
         $products = $productsQuery
